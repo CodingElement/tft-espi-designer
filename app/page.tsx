@@ -116,7 +116,8 @@ export default function Home() {
       const container = document.querySelector(".preview-editor-container") as HTMLElement;
       if (!container) return;
       const containerRect = container.getBoundingClientRect();
-      const newEditorHeight = Math.max(100, Math.min(e.clientY - containerRect.top - 5, containerRect.height - 100));
+      // Invert: dragging up (smaller Y) should increase editor height
+      const newEditorHeight = Math.max(100, Math.min(containerRect.bottom - e.clientY, containerRect.height - 100));
       setEditorHeight(newEditorHeight);
     };
 
