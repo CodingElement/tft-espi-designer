@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Square, Circle, Minus, Type, Move, Trash2, Copy, Scissors, ClipboardPaste, Undo2, Redo2, ZoomIn, ZoomOut, Settings } from "lucide-react";
+import { X, Square, Circle, Minus, Type, Move, Trash2, Copy, Scissors, ClipboardPaste, Undo2, Redo2 } from "lucide-react";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -156,16 +156,6 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <Trash2 size={20} className="text-red-400" />
                 <span className="text-gray-300">Alle Objekte löschen</span>
               </div>
-
-              <div className="flex items-center gap-3 bg-gray-900 p-3 rounded border border-gray-700">
-                <ZoomIn size={20} className="text-gray-400" />
-                <span className="text-gray-300">Vorschau vergrößern</span>
-              </div>
-
-              <div className="flex items-center gap-3 bg-gray-900 p-3 rounded border border-gray-700">
-                <ZoomOut size={20} className="text-gray-400" />
-                <span className="text-gray-300">Vorschau verkleinern</span>
-              </div>
             </div>
           </section>
 
@@ -173,11 +163,12 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <section>
             <h3 className="text-xl font-semibold mb-3 text-blue-400">Display-Einstellungen</h3>
             <p className="text-gray-300 mb-3">
-              Klicke auf das <Settings size={16} className="inline text-gray-400" /> Symbol im Header, um:
+              Im Header findest du ein Dropdown-Menü zur Auswahl der Display-Größe:
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
-              <li><span className="font-semibold">Display-Größe:</span> Wähle die Auflösung deines TFT-Displays</li>
-              <li><span className="font-semibold">Hintergrundfarbe:</span> Setze die Canvas-Hintergrundfarbe</li>
+              <li><span className="font-semibold">Voreinstellungen:</span> Verschiedene Display-Größen (2.4", 3.5", 4.0", etc.)</li>
+              <li><span className="font-semibold">Custom:</span> Eigene Display-Größe eingeben</li>
+              <li><span className="font-semibold">Hintergrundfarbe:</span> Unter dem Header kannst du die Canvas-Farbe ändern</li>
             </ul>
           </section>
 
@@ -226,7 +217,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               <li>Texte brechen automatisch um, wenn sie die eingestellte Breite überschreiten</li>
               <li>Die Undo-Funktion speichert die letzten 50 Schritte</li>
               <li>Klicke auf den Hintergrund, um die Auswahl aufzuheben</li>
-              <li>Die Vorschau kannst du mit Mausrad + Strg zoomen</li>
+              <li>Nutze Strg+Mausrad zum Zoomen der Vorschau</li>
             </ul>
           </section>
         </div>
