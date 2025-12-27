@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ColorPickerProps {
   value: string;
@@ -12,6 +12,12 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [rgbInput, setRgbInput] = useState("");
   const [hexInput, setHexInput] = useState(value);
+
+  // Keep local input in sync if parent value changes externally
+  // (e.g., via presets, parsing code, or color input control).
+  useEffect(() => {
+    setHexInput(value);
+  }, [value]);
 
   const normalizeHex = (raw: string): string | null => {
     let v = raw.trim().toUpperCase();
@@ -26,13 +32,10 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
   };
 
   const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow free typing without forcing normalization on each keypress.
+    // We'll normalize and update parent on blur or Enter.
     const raw = e.target.value;
     setHexInput(raw);
-    const normalized = normalizeHex(raw);
-    if (normalized) {
-      onChange(normalized);
-      setHexInput(normalized);
-    }
   };
 
   const handleHexBlur = () => {
@@ -90,6 +93,9 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
           value={hexInput}
           onChange={handleHexChange}
           onBlur={handleHexBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleHexBlur();
+          }}
           placeholder="#FFFFFF oder #FFF"
           className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono"
         />
