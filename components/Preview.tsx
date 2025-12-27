@@ -200,7 +200,6 @@ export default function Preview() {
 
     if (!draggingElement) return;
 
-    const coords = getCanvasCoordinates(e);
     const newX = Math.max(0, Math.min(coords.x - dragOffset.x, displayWidth - 10));
     const newY = Math.max(0, Math.min(coords.y - dragOffset.y, displayHeight - 10));
 
