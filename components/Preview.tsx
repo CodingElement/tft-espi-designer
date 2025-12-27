@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDesignStore, type DesignElement } from "@/lib/store";
 
 export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, displayWidth, displayHeight } = useDesignStore();
+  const { elements, selectElement, updateElement, displayWidth, displayHeight } = useDesignStore();
+  
+  const [draggingElement, setDraggingElement] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,6 +41,21 @@ export default function Preview() {
         ctx.fillStyle = el.color;
         ctx.beginPath();
         ctx.arc(el.x + el.width / 2, el.y + el.height / 2, el.radius || 10, 0, Math.PI * 2);
+        ctx.fill();
+        if (el.borderWidth && el.borderWidth > 0) {
+          ctx.strokeStyle = el.borderColor || "#ffffff";
+          ctx.lineWidth = el.borderWidth;
+          ctx.stroke();
+        }
+        break;
+
+      case "triangle":
+        ctx.fillStyle = el.color;
+        ctx.beginPath();
+        ctx.moveTo(el.x + el.width / 2, el.y); // Oben
+        ctx.lineTo(el.x + el.width, el.y + el.height); // Unten rechts
+        ctx.lineTo(el.x, el.y + el.height); // Unten links
+        ctx.closePath();
         ctx.fill();
         if (el.borderWidth && el.borderWidth > 0) {
           ctx.strokeStyle = el.borderColor || "#ffffff";
@@ -94,24 +112,58 @@ export default function Preview() {
     }
   }
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
 
-    // Find clicked element (from top to bottom)
+  const getElementAtCoordinates = (x: number, y: number): DesignElement | null => {
     for (let i = elements.length - 1; i >= 0; i--) {
       const el = elements[i];
       if (x >= el.x && x <= el.x + el.width && y >= el.y && y <= el.y + el.height) {
-        selectElement(el.id);
-        return;
+        return el;
       }
     }
+    return null;
+  };
 
-    selectElement(null);
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoordinates(e);
+    const element = getElementAtCoordinates(coords.x, coords.y);
+
+    if (element) {
+      selectElement(element.id);
+      setDraggingElement(element.id);
+      setDragOffset({
+        x: coords.x - element.x,
+        y: coords.y - element.y,
+      });
+    } else {
+      selectElement(null);
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!draggingElement) return;
+
+    const coords = getCanvasCoordinates(e);
+    const newX = Math.max(0, Math.min(coords.x - dragOffset.x, displayWidth - 10));
+    const newY = Math.max(0, Math.min(coords.y - dragOffset.y, displayHeight - 10));
+
+    updateElement(draggingElement, {
+      x: newX,
+      y: newY,
+    });
+  };
+
+  const handleCanvasMouseUp = () => {
+    setDraggingElement(null);
   };
 
   return (
@@ -121,8 +173,11 @@ export default function Preview() {
           ref={canvasRef}
           width={displayWidth}
           height={displayHeight}
-          onClick={handleCanvasClick}
-          className="w-full h-full cursor-pointer"
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
+          className="w-full h-full cursor-move"
           style={{ imageRendering: "crisp-edges" }}
         />
       </div>

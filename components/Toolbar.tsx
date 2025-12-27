@@ -9,12 +9,14 @@ import {
   Trash2,
   Copy,
   RotateCcw,
+  Triangle,
 } from "lucide-react";
 import { useState } from "react";
 
 const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }[] = [
   { type: "rect", icon: <Square size={20} />, label: "Rechteck" },
   { type: "circle", icon: <Circle size={20} />, label: "Kreis" },
+  { type: "triangle", icon: <Triangle size={20} />, label: "Dreieck" },
   { type: "text", icon: <Type size={20} />, label: "Text" },
   { type: "line", icon: <Minus size={20} />, label: "Linie" },
 ];

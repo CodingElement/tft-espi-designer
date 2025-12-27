@@ -117,7 +117,7 @@ export default function PropertyPanel() {
         )}
 
         {/* Rahmen */}
-        {(selectedElement.type === "rect" || selectedElement.type === "circle" || selectedElement.type === "button") && (
+        {(selectedElement.type === "rect" || selectedElement.type === "circle" || selectedElement.type === "triangle" || selectedElement.type === "button") && (
           <div className="space-y-3">
             <div>
               <label className="text-xs text-gray-400">Rahmenbreite</label>

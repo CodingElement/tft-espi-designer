@@ -40,6 +40,11 @@ function generateElementCode(el: DesignElement): string {
       }
       break;
 
+    case "triangle":
+      code += `// Triangle at (${el.x}, ${el.y}) - size: ${el.width}x${el.height}
+  tft.fillTriangle(${el.x + el.width / 2}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${el.x}, ${el.y + el.height}, ${color});`;
+      break;
+
     case "circle":
       if (el.borderWidth && el.borderWidth > 0) {
         code += `tft.drawCircle(${el.x + (el.radius || 10)}, ${el.y + (el.radius || 10)}, ${el.radius || 10}, ${color});`;

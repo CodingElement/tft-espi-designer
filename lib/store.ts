@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ElementType = "rect" | "circle" | "text" | "line" | "button" | "image";
+export type ElementType = "rect" | "circle" | "text" | "line" | "button" | "image" | "triangle";
 
 export interface DesignElement {
   id: string;
