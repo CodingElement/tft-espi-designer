@@ -127,6 +127,8 @@ export const useDesignStore = create<DesignStore>((set, get) => {
   setBackgroundColor: (color) =>
     set({
       backgroundColor: color,
+    }),
+
     clearAll: () => {
       saveToHistory();
       set({
