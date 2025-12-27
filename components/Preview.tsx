@@ -41,6 +41,9 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
   const [customWidth, setCustomWidth] = useState(displayWidth);
   const [customHeight, setCustomHeight] = useState(displayHeight);
   const [selectedPreset, setSelectedPreset] = useState<string>("320×240 (ILI9341)");
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleAddElement = (type: ElementType) => {
     const element = {
@@ -303,6 +306,17 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
     }
   };
 
+  const handleCanvasDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoordinates(e);
+    const element = getElementAtCoordinates(coords.x, coords.y);
+
+    if (element && element.type === "text") {
+      setEditingTextId(element.id);
+      setEditingText(element.text || "Text");
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  };
+
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const coords = getCanvasCoordinates(e);
     const element = getElementAtCoordinates(coords.x, coords.y);
@@ -334,6 +348,21 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
   const handleClearAll = () => {
     if (window.confirm("Möchtest du wirklich alle Elemente löschen?")) {
       clearAll();
+    }
+  };
+
+  const handleTextEditComplete = () => {
+    if (editingTextId) {
+      updateElement(editingTextId, { text: editingText });
+      setEditingTextId(null);
+    }
+  };
+
+  const handleTextEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleTextEditComplete();
+    } else if (e.key === "Escape") {
+      setEditingTextId(null);
     }
   };
 
@@ -473,6 +502,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
           className="relative bg-black border-2 border-gray-700 shadow-2xl"
           style={{
             borderRadius: isRoundDisplay ? "50%" : "0",
+            overflow: "visible",
           }}
         >
           <canvas
@@ -483,6 +513,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onDoubleClick={handleCanvasDoubleClick}
             className={cursorStyle === "move" ? "cursor-move" : "cursor-default"}
             style={{
               width: `${displayWidth * previewScale}px`,
@@ -491,6 +522,28 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
               borderRadius: isRoundDisplay ? "50%" : "0",
             }}
           />
+          {/* Inline text editor */}
+          {editingTextId && (() => {
+            const element = elements.find(el => el.id === editingTextId);
+            if (!element) return null;
+            return (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editingText}
+                onChange={(e) => setEditingText(e.target.value)}
+                onBlur={handleTextEditComplete}
+                onKeyDown={handleTextEditKeyDown}
+                className="absolute bg-white text-black px-1 border border-blue-500 outline-none"
+                style={{
+                  left: `${element.x * previewScale}px`,
+                  top: `${element.y * previewScale}px`,
+                  fontSize: `${(element.fontSize || 16) * previewScale}px`,
+                  minWidth: `${100 * previewScale}px`,
+                }}
+              />
+            );
+          })()}
         </div>
       </div>
 
