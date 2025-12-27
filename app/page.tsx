@@ -6,10 +6,12 @@ import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
 import DisplaySettings from "@/components/DisplaySettings";
 import BackgroundColorPanel from "@/components/BackgroundColorPanel";
+import HelpModal from "@/components/HelpModal";
 import { useDesignStore, type DesignElement } from "@/lib/store";
 import { generateArduinoCode, parseArduinoCode } from "@/lib/codeGenerator";
 import { useResizable } from "@/lib/hooks/useResizable";
 import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
+import { HelpCircle } from "lucide-react";
 
 // Layout-Konstanten
 const PROPERTY_PANEL_DEFAULT_WIDTH = 250;
@@ -23,6 +25,7 @@ export default function Home() {
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
   const [clipboard, setClipboard] = useState<DesignElement | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   
   // Resizable panels using custom hook
   const propertyPanel = useResizable({
@@ -122,6 +125,14 @@ export default function Home() {
               />
               Auto-Sync
             </label>
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="p-2 hover:bg-gray-700 rounded transition-colors"
+              aria-label="Hilfe"
+              title="Hilfe & Anleitung"
+            >
+              <HelpCircle size={20} />
+            </button>
           </div>
         </header>
 
@@ -131,7 +142,7 @@ export default function Home() {
         {/* Main Layout */}
         <div className="flex-1 flex overflow-hidden main-layout-container">
           {/* Property Panel (left, always visible) */}
-          <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanel.width}px` }}>
+          <div className="border-r border-gray-700 bg-gray-800" style={{ width: `${propertyPanel.width}px` }}>
             <PropertyPanel />
           </div>
 
@@ -167,6 +178,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Help Modal */}
+      <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

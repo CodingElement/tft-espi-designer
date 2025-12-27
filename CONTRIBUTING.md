@@ -191,9 +191,13 @@ const useDesignStore = create<DesignStore>((set) => ({
 - [x] Canvas Rendering
 - [x] Property Panel
 - [x] Monaco Editor Integration
-- [ ] Code Export (Arduino)
-- [ ] Drag & Drop Positioning
-- [ ] Undo/Redo
+- [x] Code Export (Arduino)
+- [x] Drag & Drop Positioning
+- [x] Undo/Redo
+- [x] Copy/Cut/Paste
+- [x] Keyboard Shortcuts
+- [x] Custom Code Preservation
+- [ ] Help Modal (v2.0)
 - [ ] Element Animationen
 - [ ] Custom Fonts
 - [ ] Image Upload
