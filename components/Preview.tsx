@@ -78,13 +78,34 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
     let maxWidth = 0;
     let lineCount = 1;
     
+    // For round displays, calculate max width at current Y position
+    const getMaxXAtY = (y: number): number => {
+      if (!isRoundDisplay) return displayWidth;
+      
+      const centerY = displayHeight / 2;
+      const radius = displayWidth / 2;
+      const distanceFromCenter = Math.abs(y - centerY);
+      
+      // If outside circle, return 0
+      if (distanceFromCenter > radius) return 0;
+      
+      // Calculate horizontal width at this Y using circle equation: x² + y² = r²
+      const halfWidth = Math.sqrt(radius * radius - distanceFromCenter * distanceFromCenter);
+      const centerX = displayWidth / 2;
+      
+      return centerX + halfWidth;
+    };
+    
     // Process character by character
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const charWidth = ctx.measureText(char).width;
       
-      // Check if character would exceed display width
-      if (currentX + charWidth > displayWidth) {
+      // Get max X position for current Y
+      const maxX = getMaxXAtY(currentY + fontSize / 2);
+      
+      // Check if character would exceed display width (or circle boundary)
+      if (currentX + charWidth > maxX) {
         // Save max width before wrapping
         maxWidth = Math.max(maxWidth, currentLineWidth);
         // Wrap to next line at x=0
@@ -448,7 +469,12 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
 
       {/* Preview Canvas */}
       <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-950 p-8">
-        <div className="relative bg-black border-2 border-gray-700 shadow-2xl">
+        <div 
+          className="relative bg-black border-2 border-gray-700 shadow-2xl"
+          style={{
+            borderRadius: isRoundDisplay ? "50%" : "0",
+          }}
+        >
           <canvas
             ref={canvasRef}
             width={displayWidth}
