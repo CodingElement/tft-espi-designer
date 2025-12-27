@@ -47,26 +47,28 @@ export default function PropertyPanel() {
         </div>
 
         {/* Größe */}
-        <div className="space-y-3 mb-4">
-          <div>
-            <label className="text-xs text-gray-400">Breite</label>
-            <input
-              type="number"
-              value={selectedElement.width}
-              onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) })}
-              className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
-            />
+        {selectedElement.type !== "circle" && (
+          <div className="space-y-3 mb-4">
+            <div>
+              <label className="text-xs text-gray-400">Breite</label>
+              <input
+                type="number"
+                value={selectedElement.width}
+                onChange={(e) => updateElement(selectedElement.id, { width: parseInt(e.target.value) })}
+                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">Höhe</label>
+              <input
+                type="number"
+                value={selectedElement.height}
+                onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) })}
+                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-xs text-gray-400">Höhe</label>
-            <input
-              type="number"
-              value={selectedElement.height}
-              onChange={(e) => updateElement(selectedElement.id, { height: parseInt(e.target.value) })}
-              className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
-            />
-          </div>
-        </div>
+        )}
 
         {/* Farbe */}
         <div className="space-y-3 mb-4">
