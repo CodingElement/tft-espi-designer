@@ -13,10 +13,10 @@ const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }
 ];
 
 const PRESET_SIZES = [
-  { name: "128×128 (SSD1351)", width: 128, height: 128 },
+  { name: "128×128 (SSD1351) Quadrat", width: 128, height: 128 },
   { name: "128×160 (ST7735) Hochkant", width: 128, height: 160 },
   { name: "160×128 (ST7735) Querformat", width: 160, height: 128 },
-  { name: "240×240 (GC9A01)", width: 240, height: 240 },
+  { name: "240×240 (GC9A01) Rund", width: 240, height: 240 },
   { name: "240×320 (ILI9341) Hochkant", width: 240, height: 320 },
   { name: "320×240 (ILI9341) Querformat", width: 320, height: 240 },
   { name: "320×480 (ILI9486) Hochkant", width: 320, height: 480 },
