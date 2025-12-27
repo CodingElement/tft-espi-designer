@@ -307,27 +307,38 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
       <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between gap-4">
         {/* Left: Display & Zoom */}
         <div className="flex items-center gap-3">
-          <select
-            value={currentPreset?.name || "Custom"}
-            onChange={(e) => {
-              const preset = PRESET_SIZES.find((p) => p.name === e.target.value);
-              if (preset) {
-                if (preset.name === "Custom") {
-                  setShowCustomDialog(true);
-                } else {
-                  useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+          <div className="flex items-center gap-1">
+            <select
+              value={currentPreset?.name || "Custom"}
+              onChange={(e) => {
+                const preset = PRESET_SIZES.find((p) => p.name === e.target.value);
+                if (preset) {
+                  if (preset.name === "Custom") {
+                    setShowCustomDialog(true);
+                  } else {
+                    useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+                  }
                 }
-              }
-            }}
-            className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white cursor-pointer hover:bg-gray-600"
-            title="Display-Größe"
-          >
-            {PRESET_SIZES.map((preset) => (
-              <option key={preset.name} value={preset.name}>
-                {preset.name}
-              </option>
-            ))}
-          </select>
+              }}
+              className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white cursor-pointer hover:bg-gray-600"
+              title="Display-Größe"
+            >
+              {PRESET_SIZES.map((preset) => (
+                <option key={preset.name} value={preset.name}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+            {(!currentPreset || currentPreset.name === "Custom") && (
+              <button
+                onClick={() => setShowCustomDialog(true)}
+                className="px-2 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-xs text-white transition-colors"
+                title="Custom-Größe bearbeiten"
+              >
+                {displayWidth}×{displayHeight}
+              </button>
+            )}
+          </div>
           
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">Zoom:</span>
