@@ -117,6 +117,13 @@ export default function PropertyPanel() {
                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
               />
             </div>
+            <div>
+              <ColorPicker
+                value={selectedElement.borderColor || "#FFFFFF"}
+                onChange={(color) => updateElement(selectedElement.id, { borderColor: color })}
+                label="Rahmenfarbe"
+              />
+            </div>
           </div>
         )}
       </div>
