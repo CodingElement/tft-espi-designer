@@ -25,11 +25,13 @@ interface DesignStore {
   selectedElement: DesignElement | null;
   displayWidth: number;
   displayHeight: number;
+  backgroundColor: string;
   addElement: (element: DesignElement) => void;
   updateElement: (id: string, updates: Partial<DesignElement>) => void;
   deleteElement: (id: string) => void;
   selectElement: (id: string | null) => void;
   setDisplaySize: (width: number, height: number) => void;
+  setBackgroundColor: (color: string) => void;
   clearAll: () => void;
 }
 
@@ -38,6 +40,7 @@ export const useDesignStore = create<DesignStore>((set) => ({
   selectedElement: null,
   displayWidth: 320,
   displayHeight: 240,
+  backgroundColor: "#000000",
 
   addElement: (element) =>
     set((state) => ({
@@ -74,6 +77,11 @@ export const useDesignStore = create<DesignStore>((set) => ({
     set({
       displayWidth: width,
       displayHeight: height,
+    }),
+
+  setBackgroundColor: (color) =>
+    set({
+      backgroundColor: color,
     }),
 
   clearAll: () =>

@@ -5,7 +5,7 @@ import { useDesignStore, type DesignElement } from "@/lib/store";
 
 export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, updateElement, displayWidth, displayHeight } = useDesignStore();
+  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
   
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -17,13 +17,13 @@ export default function Preview() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Clear canvas with black background
-    ctx.fillStyle = "#000000";
+    // Clear canvas mit Hintergrundfarbe
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
     // Draw all elements
     elements.forEach((el) => drawElement(ctx, el));
-  }, [elements, displayWidth, displayHeight]);
+  }, [elements, displayWidth, displayHeight, backgroundColor]);
 
   function drawElement(ctx: CanvasRenderingContext2D, el: DesignElement) {
     switch (el.type) {

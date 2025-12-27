@@ -1,6 +1,6 @@
 import { DesignElement } from "./store";
 
-export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240): string {
+export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240, backgroundColor: string = "#000000"): string {
   let code = `#include <TFT_eSPI.h>
 
 TFT_eSPI tft = TFT_eSPI();
@@ -8,7 +8,7 @@ TFT_eSPI tft = TFT_eSPI();
 void setup() {
   tft.init();
   tft.setRotation(1);
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(${colorToHex(backgroundColor)});
   
 `;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useDesignStore } from "@/lib/store";
+import ColorPicker from "./ColorPicker";
 
 export default function PropertyPanel() {
   const { selectedElement, updateElement } = useDesignStore();
@@ -58,23 +59,11 @@ export default function PropertyPanel() {
 
         {/* Farbe */}
         <div className="space-y-3 mb-4">
-          <div>
-            <label className="text-xs text-gray-400">Farbe</label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={selectedElement.color}
-                onChange={(e) => updateElement(selectedElement.id, { color: e.target.value })}
-                className="w-12 h-10 rounded cursor-pointer border border-gray-700"
-              />
-              <input
-                type="text"
-                value={selectedElement.color}
-                onChange={(e) => updateElement(selectedElement.id, { color: e.target.value })}
-                className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
-              />
-            </div>
-          </div>
+          <ColorPicker
+            value={selectedElement.color}
+            onChange={(color) => updateElement(selectedElement.id, { color })}
+            label="Farbe"
+          />
         </div>
 
         {/* Text-spezifische Eigenschaften */}

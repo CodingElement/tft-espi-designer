@@ -6,21 +6,22 @@ import Editor from "@/components/Editor";
 import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
 import DisplaySettings from "@/components/DisplaySettings";
+import BackgroundColorPanel from "@/components/BackgroundColorPanel";
 import { useDesignStore } from "@/lib/store";
 import { generateArduinoCode } from "@/lib/codeGenerator";
 
 export default function Home() {
   const [code, setCode] = useState("");
   const [autoSync, setAutoSync] = useState(true);
-  const { elements, selectedElement, displayWidth, displayHeight } = useDesignStore();
+  const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
   useEffect(() => {
     if (autoSync) {
-      const newCode = generateArduinoCode(elements, displayWidth, displayHeight);
+      const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor);
       setCode(newCode);
     }
-  }, [elements, displayWidth, displayHeight, autoSync]);
+  }, [elements, displayWidth, displayHeight, backgroundColor, autoSync]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -49,24 +50,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Layout */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Preview & Code Area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Preview */}
-            <div className="flex-1 flex flex-col border-r border-gray-700 overflow-hidden">
-              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-                <h2 className="text-sm font-semibold">Vorschau</h2>
-              </div>
-              <Preview />
-            </div>
-
-            {/* Code Editor */}
-            <div className="flex-1 flex flex-col border-t border-gray-700 overflow-hidden">
-              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-                <h2 className="text-sm font-semibold">Code Editor</h2>
-              </div>
-              <Editor code={code} onChange={setCode} />
+        {/* Background Color Panel */}
+        <BackgroundColorPanel />
             </div>
           </div>
 
