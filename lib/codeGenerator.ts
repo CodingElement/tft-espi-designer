@@ -20,14 +20,14 @@ export function generateArduinoCode(elements: DesignElement[], displayWidth: num
       setupPrefix = setupPrefixMatch[1];
     }
     
-    // Extract setup suffix (after DRAWING CODE END)
-    const setupSuffixMatch = existingCode.match(/\/\/ DRAWING CODE END([\s\S]*?)\}/);
+    // Extract setup suffix (after DRAWING CODE END, until end of setup function)
+    const setupSuffixMatch = existingCode.match(/\/\/ DRAWING CODE END\n([\s\S]*?)\n\}\n\nvoid loop/);
     if (setupSuffixMatch) {
-      setupSuffix = setupSuffixMatch[1];
+      setupSuffix = "\n" + setupSuffixMatch[1] + "\n";
     }
     
     // Extract loop content
-    const loopMatch = existingCode.match(/void loop\(\)\s*\{([\s\S]*?)\}/);
+    const loopMatch = existingCode.match(/void loop\(\)\s*\{([\s\S]*?)\}\s*$/);
     if (loopMatch) {
       loopCode = loopMatch[1];
     }
@@ -48,8 +48,7 @@ ${setupPrefix}  // DRAWING CODE START
     code += generateElementCode(el);
   });
 
-  code += `  // DRAWING CODE END
-${setupSuffix}}
+  code += `  // DRAWING CODE END${setupSuffix}}
 
 void loop() {${loopCode}}
 `;
