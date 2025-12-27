@@ -15,10 +15,10 @@ export default function Home() {
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
   const [clipboard, setClipboard] = useState<DesignElement | null>(null);
+  const [propertyPanelWidth, setPropertyPanelWidth] = useState(250);
+  const [isResizingPropertyWidth, setIsResizingPropertyWidth] = useState(false);
   const [editorWidth, setEditorWidth] = useState(350);
-  const [isResizingWidth, setIsResizingWidth] = useState(false);
-  const [propertyPanelHeight, setPropertyPanelHeight] = useState(180);
-  const [isResizingHeight, setIsResizingHeight] = useState(false);
+  const [isResizingEditorWidth, setIsResizingEditorWidth] = useState(false);
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
@@ -111,10 +111,35 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [clipboard]);
 
-  // Handle editor width resize (vertical divider)
+  // Handle property panel width resize (left divider)
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      if (!isResizingWidth) return;
+      if (!isResizingPropertyWidth) return;
+      const container = document.querySelector(".main-layout-container") as HTMLElement;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const newWidth = Math.max(150, Math.min(e.clientX - containerRect.left, containerRect.width - 400));
+      setPropertyPanelWidth(newWidth);
+    };
+
+    const onMouseUp = () => {
+      setIsResizingPropertyWidth(false);
+    };
+
+    if (isResizingPropertyWidth) {
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      };
+    }
+  }, [isResizingPropertyWidth]);
+
+  // Handle editor width resize (right divider)
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizingEditorWidth) return;
       const container = document.querySelector(".preview-editor-container") as HTMLElement;
       if (!container) return;
       const containerRect = container.getBoundingClientRect();
@@ -123,10 +148,10 @@ export default function Home() {
     };
 
     const onMouseUp = () => {
-      setIsResizingWidth(false);
+      setIsResizingEditorWidth(false);
     };
 
-    if (isResizingWidth) {
+    if (isResizingEditorWidth) {
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
       return () => {
@@ -134,32 +159,7 @@ export default function Home() {
         window.removeEventListener("mouseup", onMouseUp);
       };
     }
-  }, [isResizingWidth]);
-
-  // Handle property panel height resize (horizontal divider)
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizingHeight) return;
-      const container = document.querySelector(".main-layout-container") as HTMLElement;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const newPanelHeight = Math.max(80, Math.min(containerRect.bottom - e.clientY, containerRect.height - 200));
-      setPropertyPanelHeight(newPanelHeight);
-    };
-
-    const onMouseUp = () => {
-      setIsResizingHeight(false);
-    };
-
-    if (isResizingHeight) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-      return () => {
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", onMouseUp);
-      };
-    }
-  }, [isResizingHeight]);
+  }, [isResizingEditorWidth]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -200,8 +200,23 @@ export default function Home() {
         <BackgroundColorPanel />
 
         {/* Main Layout */}
-        <div className="flex-1 flex flex-col overflow-hidden main-layout-container">
-          {/* Content Area: Preview & Code Editor (horizontal) */}
+        <div className="flex-1 flex overflow-hidden main-layout-container">
+          {/* Property Panel (left, optional) */}
+          {selectedElement && (
+            <>
+              <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanelWidth}px` }}>
+                <PropertyPanel />
+              </div>
+
+              {/* Vertical Divider (left of preview) */}
+              <div
+                className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
+                onMouseDown={() => setIsResizingPropertyWidth(true)}
+              />
+            </>
+          )}
+
+          {/* Preview & Code Editor (horizontal) */}
           <div className="flex-1 flex overflow-hidden preview-editor-container">
             {/* Preview */}
             <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ flex: "1 1 auto" }}>
@@ -214,7 +229,7 @@ export default function Home() {
             {/* Vertical Divider (between Preview & Code Editor) */}
             <div
               className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
-              onMouseDown={() => setIsResizingWidth(true)}
+              onMouseDown={() => setIsResizingEditorWidth(true)}
             />
 
             {/* Code Editor */}
@@ -225,21 +240,6 @@ export default function Home() {
               <Editor code={code} onChange={handleCodeChange} />
             </div>
           </div>
-
-          {/* Horizontal Divider (between Content & Property Panel) */}
-          {selectedElement && (
-            <>
-              <div
-                className="h-1 bg-gray-600 hover:bg-blue-500 cursor-row-resize transition-colors"
-                onMouseDown={() => setIsResizingHeight(true)}
-              />
-
-              {/* Property Panel (bottom) */}
-              <div className="border-t border-gray-700 overflow-auto bg-gray-800" style={{ height: `${propertyPanelHeight}px` }}>
-                <PropertyPanel />
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
