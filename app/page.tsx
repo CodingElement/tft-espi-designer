@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Toolbar from "@/components/Toolbar";
 import Editor from "@/components/Editor";
 import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
@@ -9,16 +8,38 @@ import DisplaySettings from "@/components/DisplaySettings";
 import BackgroundColorPanel from "@/components/BackgroundColorPanel";
 import { useDesignStore, type DesignElement } from "@/lib/store";
 import { generateArduinoCode, parseArduinoCode } from "@/lib/codeGenerator";
+import { useResizable } from "@/lib/hooks/useResizable";
+import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
+
+// Layout-Konstanten
+const PROPERTY_PANEL_DEFAULT_WIDTH = 250;
+const PROPERTY_PANEL_MIN_WIDTH = 150;
+const EDITOR_DEFAULT_WIDTH = 350;
+const EDITOR_MIN_WIDTH = 200;
+const LAYOUT_MIN_REMAINING_WIDTH = 400;
 
 export default function Home() {
   const [code, setCode] = useState("");
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
   const [clipboard, setClipboard] = useState<DesignElement | null>(null);
-  const [propertyPanelWidth, setPropertyPanelWidth] = useState(250);
-  const [isResizingPropertyWidth, setIsResizingPropertyWidth] = useState(false);
-  const [editorWidth, setEditorWidth] = useState(350);
-  const [isResizingEditorWidth, setIsResizingEditorWidth] = useState(false);
+  
+  // Resizable panels using custom hook
+  const propertyPanel = useResizable({
+    defaultWidth: PROPERTY_PANEL_DEFAULT_WIDTH,
+    minWidth: PROPERTY_PANEL_MIN_WIDTH,
+    containerSelector: ".main-layout-container",
+    maxWidthConstraint: LAYOUT_MIN_REMAINING_WIDTH,
+  });
+  
+  const editorPanel = useResizable({
+    defaultWidth: EDITOR_DEFAULT_WIDTH,
+    minWidth: EDITOR_MIN_WIDTH,
+    containerSelector: ".preview-editor-container",
+    resizeFromRight: true,
+    maxWidthConstraint: EDITOR_MIN_WIDTH,
+  });
+  
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
@@ -46,110 +67,29 @@ export default function Home() {
     setAutoSync(true);
   };
 
-  // Keyboard shortcuts: Delete, Copy (Ctrl+C), Cut (Ctrl+X), Paste (Ctrl+V)
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      // Avoid interfering with inputs, textareas, contentEditable, or Monaco editor
-      if (target) {
-        const isTextField = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || (target as any).isContentEditable;
-        const inMonaco = !!target.closest?.(".monaco-editor");
-        if (isTextField || inMonaco) return;
-      }
-
+  // Keyboard shortcuts using custom hook
+  useKeyboardShortcuts({
+    clipboard,
+    onCopy: (element) => {
+      // Deep copy to clipboard
+      setClipboard(JSON.parse(JSON.stringify(element)));
+    },
+    onCut: (element) => {
+      // Deep copy to clipboard (element deletion handled by hook)
+      setClipboard(JSON.parse(JSON.stringify(element)));
+    },
+    onPaste: (clipboardElement) => {
       const store = useDesignStore.getState();
-      const sel = store.selectedElement;
-
-      // Delete key removes selected element
-      if (e.key === "Delete" && sel) {
-        e.preventDefault();
-        store.deleteElement(sel.id);
-        return;
-      }
-
-      // Copy / Cut / Paste
-      if (e.ctrlKey) {
-        if (e.key.toLowerCase() === "c" && sel) {
-          e.preventDefault();
-          // Deep copy selected element to clipboard
-          setClipboard(JSON.parse(JSON.stringify(sel)));
-          return;
-        }
-        if (e.key.toLowerCase() === "x" && sel) {
-          e.preventDefault();
-          setClipboard(JSON.parse(JSON.stringify(sel)));
-          store.deleteElement(sel.id);
-          return;
-        }
-        if (e.key.toLowerCase() === "v" && clipboard) {
-          e.preventDefault();
-          const base = clipboard;
-          const newEl: DesignElement = {
-            ...base,
-            id: `el_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-            x: Math.min(base.x + 10, store.displayWidth - 5),
-            y: Math.min(base.y + 10, store.displayHeight - 5),
-          };
-          store.addElement(newEl);
-          store.selectElement(newEl.id);
-          return;
-        }
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [clipboard]);
-
-  // Handle property panel width resize (left divider)
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizingPropertyWidth) return;
-      const container = document.querySelector(".main-layout-container") as HTMLElement;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const newWidth = Math.max(150, Math.min(e.clientX - containerRect.left, containerRect.width - 400));
-      setPropertyPanelWidth(newWidth);
-    };
-
-    const onMouseUp = () => {
-      setIsResizingPropertyWidth(false);
-    };
-
-    if (isResizingPropertyWidth) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-      return () => {
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", onMouseUp);
+      const newEl: DesignElement = {
+        ...clipboardElement,
+        id: `el_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        x: Math.min(clipboardElement.x + 10, store.displayWidth - 5),
+        y: Math.min(clipboardElement.y + 10, store.displayHeight - 5),
       };
-    }
-  }, [isResizingPropertyWidth]);
-
-  // Handle editor width resize (right divider)
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizingEditorWidth) return;
-      const container = document.querySelector(".preview-editor-container") as HTMLElement;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const newEditorWidth = Math.max(200, Math.min(containerRect.right - e.clientX, containerRect.width - 200));
-      setEditorWidth(newEditorWidth);
-    };
-
-    const onMouseUp = () => {
-      setIsResizingEditorWidth(false);
-    };
-
-    if (isResizingEditorWidth) {
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-      return () => {
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", onMouseUp);
-      };
-    }
-  }, [isResizingEditorWidth]);
+      store.addElement(newEl);
+      store.selectElement(newEl.id);
+    },
+  });
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -191,14 +131,14 @@ export default function Home() {
         {/* Main Layout */}
         <div className="flex-1 flex overflow-hidden main-layout-container">
           {/* Property Panel (left, always visible) */}
-          <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanelWidth}px` }}>
+          <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanel.width}px` }}>
             <PropertyPanel />
           </div>
 
           {/* Vertical Divider (left of preview) */}
           <div
             className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
-            onMouseDown={() => setIsResizingPropertyWidth(true)}
+            onMouseDown={propertyPanel.startResizing}
           />
 
           {/* Preview & Code Editor (horizontal) */}
@@ -214,11 +154,11 @@ export default function Home() {
             {/* Vertical Divider (between Preview & Code Editor) */}
             <div
               className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
-              onMouseDown={() => setIsResizingEditorWidth(true)}
+              onMouseDown={editorPanel.startResizing}
             />
 
             {/* Code Editor */}
-            <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ width: `${editorWidth}px` }}>
+            <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ width: `${editorPanel.width}px` }}>
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
                 <h2 className="text-sm font-semibold">Code Editor</h2>
               </div>

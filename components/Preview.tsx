@@ -39,14 +39,19 @@ export default function Preview() {
     setNextId(nextId + 1);
   };
 
-  // Calculate text dimensions based on character-by-character wrapping
-  const calculateTextDimensions = (ctx: CanvasRenderingContext2D, el: DesignElement) => {
-    if (el.type !== "text") return { width: el.width, height: el.height };
-    
-    ctx.font = `${el.fontSize || 16}px Arial`;
+  // Helper: Render text with character-by-character wrapping (like TFT_eSPI)
+  // Returns rendered dimensions { width, height }
+  const renderTextWithWrapping = (
+    ctx: CanvasRenderingContext2D, 
+    el: DesignElement, 
+    drawText: boolean = true
+  ): { width: number; height: number } => {
     const text = el.text || "Text";
     const fontSize = el.fontSize || 16;
+    ctx.font = `${fontSize}px Arial`;
+    
     let currentX = el.x;
+    let currentY = el.y;
     let currentLineWidth = 0;
     let maxWidth = 0;
     let lineCount = 1;
@@ -58,19 +63,26 @@ export default function Preview() {
       
       // Check if character would exceed display width
       if (currentX + charWidth > displayWidth) {
-        // Save max width of this line
+        // Save max width before wrapping
         maxWidth = Math.max(maxWidth, currentLineWidth);
-        // Wrap to next line
+        // Wrap to next line at x=0
         currentX = 0;
+        currentY += fontSize;
         currentLineWidth = 0;
         lineCount++;
       }
       
+      // Draw the character if requested
+      if (drawText) {
+        ctx.fillText(char, currentX, currentY + fontSize);
+      }
+      
+      // Move cursor for next character
       currentX += charWidth;
       currentLineWidth += charWidth;
     }
     
-    // Don't forget the last line
+    // Final line width
     maxWidth = Math.max(maxWidth, currentLineWidth);
     
     return {
@@ -100,7 +112,7 @@ export default function Preview() {
       
       // Update text element dimensions based on actual rendered size
       if (el.type === "text") {
-        const { width, height } = calculateTextDimensions(ctx, el);
+        const { width, height } = renderTextWithWrapping(ctx, el, false);
         if (el.width !== width || el.height !== height) {
           updateElement(el.id, { width, height });
         }
@@ -149,30 +161,8 @@ export default function Preview() {
 
       case "text":
         ctx.fillStyle = el.color;
-        ctx.font = `${el.fontSize || 16}px Arial`;
-        const text = el.text || "Text";
-        const fontSize = el.fontSize || 16;
-        let currentX = el.x;
-        let currentY = el.y;
-        
-        // Draw character by character with wrapping (like TFT_eSPI)
-        for (let i = 0; i < text.length; i++) {
-          const char = text[i];
-          const charWidth = ctx.measureText(char).width;
-          
-          // Check if character would exceed display width
-          if (currentX + charWidth > displayWidth) {
-            // Wrap to next line at x=0
-            currentX = 0;
-            currentY += fontSize;
-          }
-          
-          // Draw the character
-          ctx.fillText(char, currentX, currentY + fontSize);
-          
-          // Move cursor for next character
-          currentX += charWidth;
-        }
+        // Use unified text rendering function
+        renderTextWithWrapping(ctx, el, true);
         break;
 
       case "line":
