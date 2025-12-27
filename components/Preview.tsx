@@ -13,11 +13,16 @@ const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }
 ];
 
 const PRESET_SIZES = [
-  { name: "2.4\" ILI9341", width: 320, height: 240 },
-  { name: "3.5\" ILI9486", width: 480, height: 320 },
-  { name: "4.0\" ILI9488", width: 480, height: 320 },
-  { name: "5.0\" ILI9488", width: 800, height: 480 },
-  { name: "7.0\" Nextion", width: 800, height: 480 },
+  { name: "128×128 (SSD1351)", width: 128, height: 128 },
+  { name: "128×160 (ST7735)", width: 128, height: 160 },
+  { name: "160×128 (ST7735)", width: 160, height: 128 },
+  { name: "240×240 (GC9A01)", width: 240, height: 240 },
+  { name: "240×320 (ILI9341)", width: 240, height: 320 },
+  { name: "320×240 (ILI9341)", width: 320, height: 240 },
+  { name: "320×480 (ILI9486)", width: 320, height: 480 },
+  { name: "480×320 (ILI9486)", width: 480, height: 320 },
+  { name: "480×800 (ILI9488)", width: 480, height: 800 },
+  { name: "800×480 (ILI9488)", width: 800, height: 480 },
   { name: "Custom", width: 0, height: 0 },
 ];
 
@@ -35,7 +40,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [customWidth, setCustomWidth] = useState(displayWidth);
   const [customHeight, setCustomHeight] = useState(displayHeight);
-  const [selectedPreset, setSelectedPreset] = useState<string>("2.4\" ILI9341");
+  const [selectedPreset, setSelectedPreset] = useState<string>("320×240 (ILI9341)");
 
   const handleAddElement = (type: ElementType) => {
     const element = {
