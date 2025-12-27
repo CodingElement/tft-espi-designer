@@ -163,8 +163,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
-      {/* Toolbar */}
-      <Toolbar />
+      {/* Removed Toolbar - now integrated into Preview section */}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">

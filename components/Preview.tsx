@@ -1,14 +1,42 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useDesignStore, type DesignElement } from "@/lib/store";
+import { useDesignStore, type DesignElement, type ElementType } from "@/lib/store";
+import { Square, Circle, Type, Minus, Trash2, RotateCcw, Triangle } from "lucide-react";
+
+const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }[] = [
+  { type: "rect", icon: <Square size={18} />, label: "Rechteck" },
+  { type: "circle", icon: <Circle size={18} />, label: "Kreis" },
+  { type: "triangle", icon: <Triangle size={18} />, label: "Dreieck" },
+  { type: "text", icon: <Type size={18} />, label: "Text" },
+  { type: "line", icon: <Minus size={18} />, label: "Linie" },
+];
 
 export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale } = useDesignStore();
-  
+  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, addElement, deleteElement, clearAll, selectedElement } = useDesignStore();
+  const [nextId, setNextId] = useState(0);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleAddElement = (type: ElementType) => {
+    const element = {
+      id: `element-${nextId}`,
+      type,
+      x: 50 + nextId * 10,
+      y: 50 + nextId * 10,
+      width: type === "circle" || type === "text" ? 50 : 100,
+      height: type === "circle" ? 50 : type === "text" ? 30 : 60,
+      color: "#ffffff",
+      text: type === "text" ? "Text" : type === "button" ? "Button" : undefined,
+      fontSize: type === "text" ? 16 : undefined,
+      radius: type === "circle" ? 25 : undefined,
+      borderWidth: 0,
+    };
+
+    addElement(element);
+    setNextId(nextId + 1);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -173,24 +201,64 @@ export default function Preview() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-950 p-8">
-      <div className="relative bg-black border-2 border-gray-700 shadow-2xl">
-        <canvas
-          ref={canvasRef}
-          width={displayWidth}
-          height={displayHeight}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
-          className="cursor-move"
-          style={{
-            width: `${displayWidth * previewScale}px`,
-            height: `${displayHeight * previewScale}px`,
-            imageRendering: "pixelated",
-          }}
-        />
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Toolbar (Element Tools) */}
+      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center gap-2">
+        <div className="flex gap-1">
+          {ELEMENT_TYPES.map(({ type, icon, label }) => (
+            <button
+              key={type}
+              onClick={() => handleAddElement(type)}
+              title={label}
+              className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
+        
+        <div className="w-px h-6 bg-gray-700" />
+        
+        {selectedElement && (
+          <button
+            onClick={() => deleteElement(selectedElement.id)}
+            title="Löschen"
+            className="p-2 rounded hover:bg-red-900 transition-colors text-red-400 hover:text-red-300"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
+        
+        <button
+          onClick={() => clearAll()}
+          title="Alles löschen"
+          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-200"
+        >
+          <RotateCcw size={18} />
+        </button>
+      </div>
+
+      {/* Preview Canvas */}
+      <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-950 p-8">
+        <div className="relative bg-black border-2 border-gray-700 shadow-2xl">
+          <canvas
+            ref={canvasRef}
+            width={displayWidth}
+            height={displayHeight}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+            className="cursor-move"
+            style={{
+              width: `${displayWidth * previewScale}px`,
+              height: `${displayHeight * previewScale}px`,
+              imageRendering: "pixelated",
+            }}
+          />
+        </div>
       </div>
     </div>
   );
 }
+
