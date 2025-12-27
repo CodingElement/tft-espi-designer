@@ -24,10 +24,10 @@ export default function Home() {
   // Automatisch Code generieren wenn Elemente sich ändern
   useEffect(() => {
     if (autoSync && !codeModified) {
-      const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor);
+      const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor, code);
       setCode(newCode);
     }
-  }, [elements, displayWidth, displayHeight, backgroundColor, autoSync, codeModified]);
+  }, [elements, displayWidth, displayHeight, backgroundColor, autoSync, codeModified, code]);
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
@@ -35,22 +35,12 @@ export default function Home() {
     // Auto-Sync wird automatisch ausgeschaltet wenn User tippt
     setAutoSync(false);
 
-    // Parse code back into design to update preview
-    try {
-      const parsed = parseArduinoCode(newCode);
-      if (parsed.backgroundColor) {
-        useDesignStore.getState().setBackgroundColor(parsed.backgroundColor);
-      }
-      if (parsed.elements && parsed.elements.length > 0) {
-        useDesignStore.getState().setElements(parsed.elements);
-      }
-    } catch (e) {
-      // silently ignore parse errors
-    }
+    // Don't auto-parse when user is manually editing code
+    // User can use "Code aktualisieren" button to sync back
   };
 
   const handleRefreshCode = () => {
-    const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor);
+    const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor, code);
     setCode(newCode);
     setCodeModified(false);
     setAutoSync(true);

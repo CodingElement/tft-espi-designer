@@ -1,9 +1,20 @@
 import { DesignElement } from "./store";
 
-export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240, backgroundColor: string = "#000000"): string {
+export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240, backgroundColor: string = "#000000", existingCode?: string): string {
+  // Extract custom code from existing code (between markers)
+  let customCode = "";
+  if (existingCode) {
+    const customMatch = existingCode.match(/\/\/ CUSTOM CODE START([\s\S]*?)\/\/ CUSTOM CODE END/);
+    if (customMatch) {
+      customCode = customMatch[1];
+    }
+  }
+
   let code = `#include <TFT_eSPI.h>
 
 TFT_eSPI tft = TFT_eSPI();
+
+// CUSTOM CODE START${customCode}// CUSTOM CODE END
 
 void setup() {
   tft.init();
