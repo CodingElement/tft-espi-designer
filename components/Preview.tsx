@@ -18,6 +18,7 @@ export default function Preview() {
   const [nextId, setNextId] = useState(0);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [cursorStyle, setCursorStyle] = useState<string>("default");
 
   const handleAddElement = (type: ElementType) => {
     const element = {
@@ -179,11 +180,24 @@ export default function Preview() {
         y: coords.y - element.y,
       });
     } else {
+      // Deselect when clicking on empty canvas background
       selectElement(null);
     }
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const coords = getCanvasCoordinates(e);
+    const element = getElementAtCoordinates(coords.x, coords.y);
+
+    // Update cursor based on whether hovering over an element
+    if (draggingElement) {
+      setCursorStyle("move");
+    } else if (element) {
+      setCursorStyle("move");
+    } else {
+      setCursorStyle("default");
+    }
+
     if (!draggingElement) return;
 
     const coords = getCanvasCoordinates(e);
@@ -249,7 +263,7 @@ export default function Preview() {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
-            className="cursor-move"
+            className={cursorStyle === "move" ? "cursor-move" : "cursor-default"}
             style={{
               width: `${displayWidth * previewScale}px`,
               height: `${displayHeight * previewScale}px`,
