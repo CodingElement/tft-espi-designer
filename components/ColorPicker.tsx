@@ -89,6 +89,8 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
           value={value}
           onChange={handleColorInputChange}
           className="w-12 h-10 rounded cursor-pointer border border-gray-700"
+          title="Farbe wählen"
+          aria-label="Farbe wählen"
         />
         <input
           type="text"
@@ -99,8 +101,7 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
             if (e.key === "Enter") handleHexBlur();
           }}
           placeholder="#FFFFFF oder #FFF"
-          className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono cursor-pointer"
-          onClick={() => colorInputRef.current?.click()}
+          className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono"
         />
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -128,8 +129,10 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
           {/* Color Preview */}
           <div className="flex gap-2">
             <div
-              className="flex-1 h-10 rounded border border-gray-600"
+              className="flex-1 h-10 rounded border border-gray-600 cursor-pointer"
               style={{ backgroundColor: value }}
+              title="Farbe wählen"
+              onClick={() => colorInputRef.current?.click()}
             />
             <div className="flex-1 text-xs text-gray-400 flex items-center justify-center">
               {value.toUpperCase()}
