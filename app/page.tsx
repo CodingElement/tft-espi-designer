@@ -13,15 +13,30 @@ import { generateArduinoCode } from "@/lib/codeGenerator";
 export default function Home() {
   const [code, setCode] = useState("");
   const [autoSync, setAutoSync] = useState(true);
+  const [codeModified, setCodeModified] = useState(false);
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
   useEffect(() => {
-    if (autoSync) {
+    if (autoSync && !codeModified) {
       const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor);
       setCode(newCode);
     }
-  }, [elements, displayWidth, displayHeight, backgroundColor, autoSync]);
+  }, [elements, displayWidth, displayHeight, backgroundColor, autoSync, codeModified]);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    setCodeModified(true);
+    // Auto-Sync wird automatisch ausgeschaltet wenn User tippt
+    setAutoSync(false);
+  };
+
+  const handleRefreshCode = () => {
+    const newCode = generateArduinoCode(elements, displayWidth, displayHeight, backgroundColor);
+    setCode(newCode);
+    setCodeModified(false);
+    setAutoSync(true);
+  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -38,6 +53,14 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <DisplaySettings />
+            {codeModified && (
+              <button
+                onClick={handleRefreshCode}
+                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white font-medium"
+              >
+                ↻ Code aktualisieren
+              </button>
+            )}
             <label className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer">
               <input
                 type="checkbox"
@@ -45,7 +68,7 @@ export default function Home() {
                 onChange={(e) => setAutoSync(e.target.checked)}
                 className="w-4 h-4"
               />
-              Auto-Sync Code
+              Auto-Sync
             </label>
           </div>
         </header>
@@ -70,7 +93,7 @@ export default function Home() {
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
                 <h2 className="text-sm font-semibold">Code Editor</h2>
               </div>
-              <Editor code={code} onChange={setCode} />
+              <Editor code={code} onChange={handleCodeChange} />
             </div>
           </div>
 
