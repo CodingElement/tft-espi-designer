@@ -15,6 +15,8 @@ export default function Home() {
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
   const [clipboard, setClipboard] = useState<DesignElement | null>(null);
+  const [editorHeight, setEditorHeight] = useState(200);
+  const [isResizing, setIsResizing] = useState(false);
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
@@ -107,6 +109,31 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [clipboard]);
 
+  // Handle editor height resize
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const container = document.querySelector(".preview-editor-container") as HTMLElement;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const newEditorHeight = Math.max(100, Math.min(e.clientY - containerRect.top - 5, containerRect.height - 100));
+      setEditorHeight(newEditorHeight);
+    };
+
+    const onMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      };
+    }
+  }, [isResizing]);
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Toolbar */}
@@ -148,7 +175,7 @@ export default function Home() {
         {/* Main Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Preview & Code Area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden preview-editor-container">
             {/* Preview */}
             <div className="flex-1 flex flex-col border-r border-gray-700 overflow-hidden">
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
@@ -157,8 +184,14 @@ export default function Home() {
               <Preview />
             </div>
 
+            {/* Resizable Divider */}
+            <div
+              className="h-1 bg-gray-600 hover:bg-blue-500 cursor-row-resize transition-colors"
+              onMouseDown={() => setIsResizing(true)}
+            />
+
             {/* Code Editor */}
-            <div className="flex-1 flex flex-col border-t border-gray-700 overflow-hidden">
+            <div className="flex flex-col border-t border-gray-700 overflow-hidden" style={{ height: `${editorHeight}px` }}>
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
                 <h2 className="text-sm font-semibold">Code Editor</h2>
               </div>
