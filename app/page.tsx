@@ -1,35 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Toolbar from "@/components/Toolbar";
 import Editor from "@/components/Editor";
 import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
 import DisplaySettings from "@/components/DisplaySettings";
 import { useDesignStore } from "@/lib/store";
+import { generateArduinoCode } from "@/lib/codeGenerator";
 
 export default function Home() {
-  const [code, setCode] = useState(`// TFT_eSPI Designer Code
-#include <TFT_eSPI.h>
+  const [code, setCode] = useState("");
+  const [autoSync, setAutoSync] = useState(true);
+  const { elements, selectedElement, displayWidth, displayHeight } = useDesignStore();
 
-TFT_eSPI tft = TFT_eSPI();
-
-void setup() {
-  tft.init();
-  tft.setRotation(1);
-  tft.fillScreen(TFT_BLACK);
-  
-  // Dein Design hier
-  tft.drawRect(10, 10, 100, 50, TFT_WHITE);
-  tft.drawString("TFT Designer", 20, 20, 2);
-}
-
-void loop() {
-  delay(100);
-}
-`);
-
-  const { selectedElement } = useDesignStore();
+  // Automatisch Code generieren wenn Elemente sich ändern
+  useEffect(() => {
+    if (autoSync) {
+      const newCode = generateArduinoCode(elements, displayWidth, displayHeight);
+      setCode(newCode);
+    }
+  }, [elements, displayWidth, displayHeight, autoSync]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -38,13 +29,24 @@ void loop() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
+      {/* Header */}
         <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">TFT-eSPI Designer</h1>
             <p className="text-sm text-gray-400">Online Editor mit Live-Vorschau</p>
           </div>
-          <DisplaySettings />
+          <div className="flex items-center gap-4">
+            <DisplaySettings />
+            <label className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoSync}
+                onChange={(e) => setAutoSync(e.target.checked)}
+                className="w-4 h-4"
+              />
+              Auto-Sync Code
+            </label>
+          </div>
         </header>
 
         {/* Main Layout */}
