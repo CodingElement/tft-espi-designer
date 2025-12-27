@@ -219,7 +219,7 @@ export default function Home() {
           <div className="flex-1 flex overflow-hidden preview-editor-container">
             {/* Preview */}
             <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ flex: "1 1 auto" }}>
-              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
+              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700 text-center">
                 <h2 className="text-sm font-semibold">Vorschau</h2>
               </div>
               <Preview />
