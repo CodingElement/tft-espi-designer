@@ -7,13 +7,14 @@ import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
 import DisplaySettings from "@/components/DisplaySettings";
 import BackgroundColorPanel from "@/components/BackgroundColorPanel";
-import { useDesignStore } from "@/lib/store";
+import { useDesignStore, type DesignElement } from "@/lib/store";
 import { generateArduinoCode, parseArduinoCode } from "@/lib/codeGenerator";
 
 export default function Home() {
   const [code, setCode] = useState("");
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
+  const [clipboard, setClipboard] = useState<DesignElement | null>(null);
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
@@ -50,6 +51,61 @@ export default function Home() {
     setCodeModified(false);
     setAutoSync(true);
   };
+
+  // Keyboard shortcuts: Delete, Copy (Ctrl+C), Cut (Ctrl+X), Paste (Ctrl+V)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Avoid interfering with inputs, textareas, contentEditable, or Monaco editor
+      if (target) {
+        const isTextField = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || (target as any).isContentEditable;
+        const inMonaco = !!target.closest?.(".monaco-editor");
+        if (isTextField || inMonaco) return;
+      }
+
+      const store = useDesignStore.getState();
+      const sel = store.selectedElement;
+
+      // Delete key removes selected element
+      if (e.key === "Delete" && sel) {
+        e.preventDefault();
+        store.deleteElement(sel.id);
+        return;
+      }
+
+      // Copy / Cut / Paste
+      if (e.ctrlKey) {
+        if (e.key.toLowerCase() === "c" && sel) {
+          e.preventDefault();
+          // Deep copy selected element to clipboard
+          setClipboard(JSON.parse(JSON.stringify(sel)));
+          return;
+        }
+        if (e.key.toLowerCase() === "x" && sel) {
+          e.preventDefault();
+          setClipboard(JSON.parse(JSON.stringify(sel)));
+          store.deleteElement(sel.id);
+          return;
+        }
+        if (e.key.toLowerCase() === "v" && clipboard) {
+          e.preventDefault();
+          const base = clipboard;
+          const newEl: DesignElement = {
+            ...base,
+            id: `el_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            x: Math.min(base.x + 10, store.displayWidth - 5),
+            y: Math.min(base.y + 10, store.displayHeight - 5),
+          };
+          store.addElement(newEl);
+          store.selectElement(newEl.id);
+          return;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clipboard]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">

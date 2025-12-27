@@ -4,7 +4,7 @@ import { useDesignStore } from "@/lib/store";
 import ColorPicker from "./ColorPicker";
 
 export default function PropertyPanel() {
-  const { selectedElement, updateElement } = useDesignStore();
+  const { selectedElement, updateElement, deleteElement } = useDesignStore();
 
   if (!selectedElement) return null;
 
@@ -126,6 +126,15 @@ export default function PropertyPanel() {
             </div>
           </div>
         )}
+      </div>
+      {/* Aktionen */}
+      <div className="p-4 border-t border-gray-700">
+        <button
+          onClick={() => selectedElement && deleteElement(selectedElement.id)}
+          className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-sm text-white font-medium"
+        >
+          Element löschen
+        </button>
       </div>
     </div>
   );
