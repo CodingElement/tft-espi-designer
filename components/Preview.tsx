@@ -39,6 +39,44 @@ export default function Preview() {
     setNextId(nextId + 1);
   };
 
+  // Calculate text dimensions based on wrapping
+  const calculateTextDimensions = (ctx: CanvasRenderingContext2D, el: DesignElement) => {
+    if (el.type !== "text") return { width: el.width, height: el.height };
+    
+    ctx.font = `${el.fontSize || 16}px Arial`;
+    const text = el.text || "Text";
+    const fontSize = el.fontSize || 16;
+    let currentX = el.x;
+    let maxWidth = 0;
+    let lineCount = 1;
+    
+    const words = text.split(' ');
+    let line = '';
+    
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + (line ? ' ' : '') + words[i];
+      const metrics = ctx.measureText(testLine);
+      
+      if (currentX + metrics.width > displayWidth && line) {
+        maxWidth = Math.max(maxWidth, ctx.measureText(line).width);
+        currentX = 0;
+        lineCount++;
+        line = words[i];
+      } else {
+        line = testLine;
+      }
+    }
+    
+    if (line) {
+      maxWidth = Math.max(maxWidth, ctx.measureText(line).width);
+    }
+    
+    return {
+      width: Math.max(maxWidth, 10),
+      height: lineCount * fontSize
+    };
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -54,8 +92,18 @@ export default function Preview() {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
-    // Draw all elements
-    elements.forEach((el) => drawElement(ctx, el));
+    // Draw all elements and update text dimensions
+    elements.forEach((el) => {
+      drawElement(ctx, el);
+      
+      // Update text element dimensions based on actual rendered size
+      if (el.type === "text") {
+        const { width, height } = calculateTextDimensions(ctx, el);
+        if (el.width !== width || el.height !== height) {
+          updateElement(el.id, { width, height });
+        }
+      }
+    });
   }, [elements, displayWidth, displayHeight, backgroundColor]);
 
   function drawElement(ctx: CanvasRenderingContext2D, el: DesignElement) {
