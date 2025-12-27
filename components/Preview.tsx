@@ -462,6 +462,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
               width: `${displayWidth * previewScale}px`,
               height: `${displayHeight * previewScale}px`,
               imageRendering: "pixelated",
+              borderRadius: isRoundDisplay ? "50%" : "0",
             }}
           />
         </div>
