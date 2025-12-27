@@ -52,14 +52,18 @@ export default function Preview() {
     
     const words = text.split(' ');
     let line = '';
+    let lineStartX = currentX;
     
     for (let i = 0; i < words.length; i++) {
       const testLine = line + (line ? ' ' : '') + words[i];
       const metrics = ctx.measureText(testLine);
       
-      if (currentX + metrics.width > displayWidth && line) {
-        maxWidth = Math.max(maxWidth, ctx.measureText(line).width);
-        currentX = 0;
+      // Check if line would exceed display width from current position
+      if (lineStartX + metrics.width > displayWidth && line) {
+        const lineWidth = ctx.measureText(line).width;
+        maxWidth = Math.max(maxWidth, lineWidth);
+        // Next line starts at x=0
+        lineStartX = 0;
         lineCount++;
         line = words[i];
       } else {
@@ -68,7 +72,8 @@ export default function Preview() {
     }
     
     if (line) {
-      maxWidth = Math.max(maxWidth, ctx.measureText(line).width);
+      const lineWidth = ctx.measureText(line).width;
+      maxWidth = Math.max(maxWidth, lineWidth);
     }
     
     return {
@@ -161,11 +166,11 @@ export default function Preview() {
           const testLine = line + (line ? ' ' : '') + words[i];
           const metrics = ctx.measureText(testLine);
           
-          // Check if line exceeds display width
+          // Check if line exceeds display width from current X position
           if (currentX + metrics.width > displayWidth && line) {
             // Draw current line
             ctx.fillText(line, currentX, currentY);
-            // Move to next line at display start
+            // Move to next line at display start (x=0)
             currentX = 0;
             currentY += fontSize;
             line = words[i];
