@@ -46,7 +46,29 @@ export default function PropertyPanel() {
           </div>
         </div>
 
-        {/* Größe */}
+        {/* Kreis: Radius direkt nach Position */}
+        {selectedElement.type === "circle" && (
+          <div className="space-y-3 mb-4">
+            <div>
+              <label className="text-xs text-gray-400">Radius</label>
+              <input
+                type="number"
+                value={selectedElement.radius || 10}
+                onChange={(e) => {
+                  const radius = parseInt(e.target.value);
+                  updateElement(selectedElement.id, { 
+                    radius,
+                    width: radius * 2,
+                    height: radius * 2
+                  });
+                }}
+                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Größe (für alle außer Kreis) */}
         {selectedElement.type !== "circle" && (
           <div className="space-y-3 mb-4">
             <div>
@@ -97,21 +119,6 @@ export default function PropertyPanel() {
                 type="number"
                 value={selectedElement.fontSize || 16}
                 onChange={(e) => updateElement(selectedElement.id, { fontSize: parseInt(e.target.value) })}
-                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Kreis-spezifische Eigenschaften */}
-        {selectedElement.type === "circle" && (
-          <div className="space-y-3 mb-4">
-            <div>
-              <label className="text-xs text-gray-400">Radius</label>
-              <input
-                type="number"
-                value={selectedElement.radius || 10}
-                onChange={(e) => updateElement(selectedElement.id, { radius: parseInt(e.target.value) })}
                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-white"
               />
             </div>
