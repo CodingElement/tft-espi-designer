@@ -1,35 +1,12 @@
 import { DesignElement } from "./store";
 
 export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240, backgroundColor: string = "#000000", existingCode?: string): string {
-  // Extract custom code sections from existing code
+  // Extract custom code from existing code (between markers)
   let customCode = "";
-  let setupPrefix = "  tft.init();\n  tft.setRotation(1);\n  tft.fillScreen(" + colorToHex(backgroundColor) + ");\n  \n";
-  let setupSuffix = "";
-  let loopCode = "\n  delay(100);\n";
-  
   if (existingCode) {
-    // Extract custom functions/variables (between CUSTOM CODE markers)
     const customMatch = existingCode.match(/\/\/ CUSTOM CODE START([\s\S]*?)\/\/ CUSTOM CODE END/);
     if (customMatch) {
       customCode = customMatch[1];
-    }
-    
-    // Extract setup prefix (before DRAWING CODE START)
-    const setupPrefixMatch = existingCode.match(/void setup\(\)\s*\{([\s\S]*?)\/\/ DRAWING CODE START/);
-    if (setupPrefixMatch) {
-      setupPrefix = setupPrefixMatch[1];
-    }
-    
-    // Extract setup suffix (after DRAWING CODE END, until end of setup function)
-    const setupSuffixMatch = existingCode.match(/\/\/ DRAWING CODE END\n([\s\S]*?)\n\}\n\nvoid loop/);
-    if (setupSuffixMatch) {
-      setupSuffix = "\n" + setupSuffixMatch[1] + "\n";
-    }
-    
-    // Extract loop content
-    const loopMatch = existingCode.match(/void loop\(\)\s*\{([\s\S]*?)\}\s*$/);
-    if (loopMatch) {
-      loopCode = loopMatch[1];
     }
   }
 
@@ -40,7 +17,10 @@ TFT_eSPI tft = TFT_eSPI();
 // CUSTOM CODE START${customCode}// CUSTOM CODE END
 
 void setup() {
-${setupPrefix}  // DRAWING CODE START
+  tft.init();
+  tft.setRotation(1);
+  tft.fillScreen(${colorToHex(backgroundColor)});
+  
 `;
 
   // Generate drawing code for each element
@@ -48,9 +28,11 @@ ${setupPrefix}  // DRAWING CODE START
     code += generateElementCode(el);
   });
 
-  code += `  // DRAWING CODE END${setupSuffix}}
+  code += `}
 
-void loop() {${loopCode}}
+void loop() {
+  delay(100);
+}
 `;
 
   return code;
