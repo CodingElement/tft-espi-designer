@@ -39,7 +39,7 @@ export default function Preview() {
     setNextId(nextId + 1);
   };
 
-  // Calculate text dimensions based on wrapping
+  // Calculate text dimensions based on character-by-character wrapping
   const calculateTextDimensions = (ctx: CanvasRenderingContext2D, el: DesignElement) => {
     if (el.type !== "text") return { width: el.width, height: el.height };
     
@@ -51,14 +51,13 @@ export default function Preview() {
     let maxWidth = 0;
     let lineCount = 1;
     
-    const words = text.split(' ');
-    
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      const wordWidth = ctx.measureText(word + ' ').width;
+    // Process character by character
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const charWidth = ctx.measureText(char).width;
       
-      // Check if word would exceed display width
-      if (currentX + wordWidth > displayWidth) {
+      // Check if character would exceed display width
+      if (currentX + charWidth > displayWidth) {
         // Save max width of this line
         maxWidth = Math.max(maxWidth, currentLineWidth);
         // Wrap to next line
@@ -67,8 +66,8 @@ export default function Preview() {
         lineCount++;
       }
       
-      currentX += wordWidth;
-      currentLineWidth += wordWidth;
+      currentX += charWidth;
+      currentLineWidth += charWidth;
     }
     
     // Don't forget the last line
@@ -156,25 +155,23 @@ export default function Preview() {
         let currentX = el.x;
         let currentY = el.y;
         
-        // Split text into words and wrap at display edge
-        const words = text.split(' ');
-        
-        for (let i = 0; i < words.length; i++) {
-          const word = words[i];
-          const wordWidth = ctx.measureText(word + ' ').width;
+        // Draw character by character with wrapping (like TFT_eSPI)
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const charWidth = ctx.measureText(char).width;
           
-          // Check if word would exceed display width
-          if (currentX + wordWidth > displayWidth) {
+          // Check if character would exceed display width
+          if (currentX + charWidth > displayWidth) {
             // Wrap to next line at x=0
             currentX = 0;
             currentY += fontSize;
           }
           
-          // Draw the word
-          ctx.fillText(word + (i < words.length - 1 ? ' ' : ''), currentX, currentY + fontSize);
+          // Draw the character
+          ctx.fillText(char, currentX, currentY + fontSize);
           
-          // Move cursor for next word
-          currentX += wordWidth;
+          // Move cursor for next character
+          currentX += charWidth;
         }
         break;
 
