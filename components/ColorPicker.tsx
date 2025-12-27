@@ -13,12 +13,36 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
   const [rgbInput, setRgbInput] = useState("");
   const [hexInput, setHexInput] = useState(value);
 
+  const normalizeHex = (raw: string): string | null => {
+    let v = raw.trim().toUpperCase();
+    if (!v.startsWith("#")) v = "#" + v;
+    // #RGB -> #RRGGBB
+    if (/^#[0-9A-F]{3}$/.test(v)) {
+      const r = v[1], g = v[2], b = v[3];
+      v = `#${r}${r}${g}${g}${b}${b}`;
+    }
+    if (/^#[0-9A-F]{6}$/.test(v)) return v;
+    return null;
+  };
+
   const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let hex = e.target.value.toUpperCase();
-    if (!hex.startsWith("#")) hex = "#" + hex;
-    if (hex.length === 7) {
-      onChange(hex);
-      setHexInput(hex);
+    const raw = e.target.value;
+    setHexInput(raw);
+    const normalized = normalizeHex(raw);
+    if (normalized) {
+      onChange(normalized);
+      setHexInput(normalized);
+    }
+  };
+
+  const handleHexBlur = () => {
+    const normalized = normalizeHex(hexInput);
+    if (normalized) {
+      onChange(normalized);
+      setHexInput(normalized);
+    } else {
+      // reset to current value if invalid
+      setHexInput(value);
     }
   };
 
@@ -65,7 +89,8 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
           type="text"
           value={hexInput}
           onChange={handleHexChange}
-          placeholder="#FFFFFF"
+          onBlur={handleHexBlur}
+          placeholder="#FFFFFF oder #FFF"
           className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono"
         />
         <button

@@ -8,7 +8,7 @@ import PropertyPanel from "@/components/PropertyPanel";
 import DisplaySettings from "@/components/DisplaySettings";
 import BackgroundColorPanel from "@/components/BackgroundColorPanel";
 import { useDesignStore } from "@/lib/store";
-import { generateArduinoCode } from "@/lib/codeGenerator";
+import { generateArduinoCode, parseArduinoCode } from "@/lib/codeGenerator";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -29,6 +29,19 @@ export default function Home() {
     setCodeModified(true);
     // Auto-Sync wird automatisch ausgeschaltet wenn User tippt
     setAutoSync(false);
+
+    // Parse code back into design to update preview
+    try {
+      const parsed = parseArduinoCode(newCode);
+      if (parsed.backgroundColor) {
+        useDesignStore.getState().setBackgroundColor(parsed.backgroundColor);
+      }
+      if (parsed.elements && parsed.elements.length > 0) {
+        useDesignStore.getState().setElements(parsed.elements);
+      }
+    } catch (e) {
+      // silently ignore parse errors
+    }
   };
 
   const handleRefreshCode = () => {

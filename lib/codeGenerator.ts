@@ -27,6 +27,129 @@ void loop() {
   return code;
 }
 
+// Parse TFT_eSPI Arduino code into design elements and background color
+export function parseArduinoCode(code: string): { elements: DesignElement[]; backgroundColor?: string } {
+  const elements: DesignElement[] = [];
+  let bgColorHex: string | undefined = undefined;
+
+  // Background color: tft.fillScreen(COLOR)
+  const fillScreenMatch = code.match(/tft\.fillScreen\(([^)]+)\)/);
+  if (fillScreenMatch) {
+    const cToken = fillScreenMatch[1].trim();
+    bgColorHex = tftColorTokenToHex(cToken);
+  }
+
+  // Rectangles
+  const rectRegex = /tft\.(fillRect|drawRect)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\)/g;
+  for (const m of code.matchAll(rectRegex)) {
+    const [, kind, x, y, w, h, cToken] = m;
+    const color = tftColorTokenToHex(cToken.trim());
+    elements.push({
+      id: `el-${elements.length}`,
+      type: "rect",
+      x: parseInt(x, 10),
+      y: parseInt(y, 10),
+      width: parseInt(w, 10),
+      height: parseInt(h, 10),
+      color,
+      borderWidth: kind === "drawRect" ? 1 : 0,
+    });
+  }
+
+  // Circles
+  const circRegex = /tft\.(fillCircle|drawCircle)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\)/g;
+  for (const m of code.matchAll(circRegex)) {
+    const [, kind, cx, cy, r, cToken] = m;
+    const color = tftColorTokenToHex(cToken.trim());
+    const radius = parseInt(r, 10);
+    const x = parseInt(cx, 10) - radius;
+    const y = parseInt(cy, 10) - radius;
+    elements.push({
+      id: `el-${elements.length}`,
+      type: "circle",
+      x,
+      y,
+      width: radius * 2,
+      height: radius * 2,
+      radius,
+      color,
+      borderWidth: kind === "drawCircle" ? 1 : 0,
+    });
+  }
+
+  // Lines
+  const lineRegex = /tft\.drawLine\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\)/g;
+  for (const m of code.matchAll(lineRegex)) {
+    const [, x1, y1, x2, y2, cToken] = m;
+    const color = tftColorTokenToHex(cToken.trim());
+    elements.push({
+      id: `el-${elements.length}`,
+      type: "line",
+      x: parseInt(x1, 10),
+      y: parseInt(y1, 10),
+      width: parseInt(x2, 10) - parseInt(x1, 10),
+      height: parseInt(y2, 10) - parseInt(y1, 10),
+      color,
+      borderWidth: 1,
+    });
+  }
+
+  // Text: use last setTextColor before drawString if available
+  let lastTextColor: string | undefined = undefined;
+  const textColorRegex = /tft\.setTextColor\(([^)]+)\)/g;
+  for (const m of code.matchAll(textColorRegex)) {
+    lastTextColor = tftColorTokenToHex(m[1].trim());
+  }
+  const textRegex = /tft\.drawString\(\s*"([\s\S]*?)"\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g;
+  for (const m of code.matchAll(textRegex)) {
+    const [, text, x, y, font] = m;
+    elements.push({
+      id: `el-${elements.length}`,
+      type: "text",
+      x: parseInt(x, 10),
+      y: parseInt(y, 10),
+      width: text.length * 8,
+      height: (parseInt(font, 10) || 2) * 8,
+      text,
+      color: lastTextColor || "#FFFFFF",
+      fontSize: parseInt(font, 10) || 2,
+    });
+  }
+
+  return { elements, backgroundColor: bgColorHex };
+}
+
+// Convert TFT color token (TFT_RED or 0xF800) to #RRGGBB
+export function tftColorTokenToHex(token: string): string {
+  const namedMap: Record<string, string> = {
+    TFT_BLACK: "#000000",
+    TFT_WHITE: "#FFFFFF",
+    TFT_RED: "#FF0000",
+    TFT_GREEN: "#00FF00",
+    TFT_BLUE: "#0000FF",
+    TFT_YELLOW: "#FFFF00",
+    TFT_MAGENTA: "#FF00FF",
+    TFT_CYAN: "#00FFFF",
+  };
+  const upper = token.toUpperCase();
+  if (namedMap[upper]) return namedMap[upper];
+  // 0xRGB565
+  const m = upper.match(/^0X([0-9A-F]{4})$/);
+  if (m) {
+    const v = parseInt(m[1], 16);
+    const r5 = (v >> 11) & 0x1f;
+    const g6 = (v >> 5) & 0x3f;
+    const b5 = v & 0x1f;
+    const r8 = (r5 << 3) | (r5 >> 2);
+    const g8 = (g6 << 2) | (g6 >> 4);
+    const b8 = (b5 << 3) | (b5 >> 2);
+    const hex = `#${r8.toString(16).padStart(2, "0")}${g8.toString(16).padStart(2, "0")}${b8.toString(16).padStart(2, "0")}`.toUpperCase();
+    return hex;
+  }
+  // Fallback: if already #RRGGBB
+  if (upper.startsWith("#") && upper.length === 7) return upper;
+  return "#FFFFFF";
+}
 function generateElementCode(el: DesignElement): string {
   const color = colorToHex(el.color);
   let code = "  ";
