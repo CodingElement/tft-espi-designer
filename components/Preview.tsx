@@ -35,6 +35,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [customWidth, setCustomWidth] = useState(displayWidth);
   const [customHeight, setCustomHeight] = useState(displayHeight);
+  const [selectedPreset, setSelectedPreset] = useState<string>("2.4\" ILI9341");
 
   const handleAddElement = (type: ElementType) => {
     const element = {
@@ -297,9 +298,6 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
     }
   };
 
-  const currentPreset = PRESET_SIZES.find(
-    (p) => p.width === displayWidth && p.height === displayHeight
-  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -309,9 +307,11 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <select
-              value={currentPreset?.name || "Custom"}
+              value={selectedPreset}
               onChange={(e) => {
-                const preset = PRESET_SIZES.find((p) => p.name === e.target.value);
+                const presetName = e.target.value;
+                setSelectedPreset(presetName);
+                const preset = PRESET_SIZES.find((p) => p.name === presetName);
                 if (preset) {
                   if (preset.name === "Custom") {
                     setShowCustomDialog(true);
@@ -329,7 +329,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
                 </option>
               ))}
             </select>
-            {(!currentPreset || currentPreset.name === "Custom") && (
+            {selectedPreset === "Custom" && (
               <button
                 onClick={() => setShowCustomDialog(true)}
                 className="px-2 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-xs text-white transition-colors"
