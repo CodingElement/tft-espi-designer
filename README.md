@@ -76,11 +76,15 @@ src/
 
 ## Lizenz
 
-MIT
+MIT License - Copyright (c) 2025 CodingElement
+
+Dieses Projekt ist unter der MIT-Lizenz lizenziert, die kommerzieller Nutzung, Modifikationen und Weitergabe erlaubt - solange der Original-Autor genannt wird.
+
+Siehe [LICENSE](LICENSE) für die vollständigen Details.
 
 ## Autor
 
-Erstellt als TFT-eSPI Designer Tool
+Erstellt von **CodingElement** als TFT-eSPI Designer Tool
 
 ---
 
