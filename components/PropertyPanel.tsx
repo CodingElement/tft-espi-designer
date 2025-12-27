@@ -68,8 +68,8 @@ export default function PropertyPanel() {
           </div>
         )}
 
-        {/* Größe (für alle außer Kreis) */}
-        {selectedElement.type !== "circle" && (
+        {/* Größe (für alle außer Kreis und Text) */}
+        {selectedElement.type !== "circle" && selectedElement.type !== "text" && (
           <div className="space-y-3 mb-4">
             <div>
               <label className="text-xs text-gray-400">Breite</label>

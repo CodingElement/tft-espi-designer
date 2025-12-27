@@ -100,7 +100,35 @@ export default function Preview() {
       case "text":
         ctx.fillStyle = el.color;
         ctx.font = `${el.fontSize || 16}px Arial`;
-        ctx.fillText(el.text || "Text", el.x, el.y + (el.fontSize || 16));
+        const text = el.text || "Text";
+        const fontSize = el.fontSize || 16;
+        let currentX = el.x;
+        let currentY = el.y + fontSize;
+        
+        // Split text into words
+        const words = text.split(' ');
+        let line = '';
+        
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + (line ? ' ' : '') + words[i];
+          const metrics = ctx.measureText(testLine);
+          
+          // Check if line exceeds display width
+          if (currentX + metrics.width > displayWidth && line) {
+            // Draw current line
+            ctx.fillText(line, currentX, currentY);
+            // Move to next line at display start
+            currentX = 0;
+            currentY += fontSize;
+            line = words[i];
+          } else {
+            line = testLine;
+          }
+        }
+        // Draw remaining text
+        if (line) {
+          ctx.fillText(line, currentX, currentY);
+        }
         break;
 
       case "line":
