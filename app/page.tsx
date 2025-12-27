@@ -37,8 +37,8 @@ export default function Home() {
     defaultWidth: EDITOR_DEFAULT_WIDTH,
     minWidth: EDITOR_MIN_WIDTH,
     containerSelector: ".preview-editor-container",
-    resizeFromRight: true,
-    maxWidthConstraint: EDITOR_MIN_WIDTH,
+    resizeFromRight: false,
+    maxWidthConstraint: LAYOUT_MIN_REMAINING_WIDTH,
   });
   
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
