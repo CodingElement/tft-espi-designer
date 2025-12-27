@@ -27,6 +27,7 @@ interface DesignStore {
   displayHeight: number;
   previewScale: number;
   backgroundColor: string;
+  isRoundDisplay: boolean;
   history: DesignElement[][];
   historyIndex: number;
   setElements: (elements: DesignElement[]) => void;
@@ -34,7 +35,7 @@ interface DesignStore {
   updateElement: (id: string, updates: Partial<DesignElement>) => void;
   deleteElement: (id: string) => void;
   selectElement: (id: string | null) => void;
-  setDisplaySize: (width: number, height: number) => void;
+  setDisplaySize: (width: number, height: number, isRound?: boolean) => void;
   setPreviewScale: (scale: number) => void;
   setBackgroundColor: (color: string) => void;
   clearAll: () => void;
@@ -67,6 +68,7 @@ export const useDesignStore = create<DesignStore>((set, get) => {
     displayHeight: 240,
     previewScale: 1,
     backgroundColor: "#000000",
+    isRoundDisplay: false,
     history: [[]],
     historyIndex: 0,
 
@@ -113,10 +115,11 @@ export const useDesignStore = create<DesignStore>((set, get) => {
         : null,
     })),
 
-  setDisplaySize: (width, height) =>
+  setDisplaySize: (width, height, isRound = false) =>
     set({
       displayWidth: width,
       displayHeight: height,
+      isRoundDisplay: isRound,
     }),
 
   setPreviewScale: (scale) =>

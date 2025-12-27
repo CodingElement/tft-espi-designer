@@ -13,17 +13,17 @@ const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }
 ];
 
 const PRESET_SIZES = [
-  { name: "128×128 (SSD1351) Quadrat", width: 128, height: 128 },
-  { name: "128×160 (ST7735) Hochkant", width: 128, height: 160 },
-  { name: "160×128 (ST7735) Querformat", width: 160, height: 128 },
-  { name: "240×240 (GC9A01) Rund", width: 240, height: 240 },
-  { name: "240×320 (ILI9341) Hochkant", width: 240, height: 320 },
-  { name: "320×240 (ILI9341) Querformat", width: 320, height: 240 },
-  { name: "320×480 (ILI9486) Hochkant", width: 320, height: 480 },
-  { name: "480×320 (ILI9486) Querformat", width: 480, height: 320 },
-  { name: "480×800 (ILI9488) Hochkant", width: 480, height: 800 },
-  { name: "800×480 (ILI9488) Querformat", width: 800, height: 480 },
-  { name: "Custom", width: 0, height: 0 },
+  { name: "128×128 (SSD1351) Quadrat", width: 128, height: 128, isRound: false },
+  { name: "128×160 (ST7735) Hochkant", width: 128, height: 160, isRound: false },
+  { name: "160×128 (ST7735) Querformat", width: 160, height: 128, isRound: false },
+  { name: "240×240 (GC9A01) Rund", width: 240, height: 240, isRound: true },
+  { name: "240×320 (ILI9341) Hochkant", width: 240, height: 320, isRound: false },
+  { name: "320×240 (ILI9341) Querformat", width: 320, height: 240, isRound: false },
+  { name: "320×480 (ILI9486) Hochkant", width: 320, height: 480, isRound: false },
+  { name: "480×320 (ILI9486) Querformat", width: 480, height: 320, isRound: false },
+  { name: "480×800 (ILI9488) Hochkant", width: 480, height: 800, isRound: false },
+  { name: "800×480 (ILI9488) Querformat", width: 800, height: 480, isRound: false },
+  { name: "Custom", width: 0, height: 0, isRound: false },
 ];
 
 interface PreviewProps {
@@ -32,7 +32,7 @@ interface PreviewProps {
 
 export default function Preview({ onOpenHelp }: PreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, addElement, deleteElement, clearAll, selectedElement, undo, redo, canUndo, canRedo } = useDesignStore();
+  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, isRoundDisplay, addElement, deleteElement, clearAll, selectedElement, undo, redo, canUndo, canRedo } = useDesignStore();
   const [nextId, setNextId] = useState(0);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -128,6 +128,14 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
+    // Apply circular clipping for round displays
+    if (isRoundDisplay) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(displayWidth / 2, displayHeight / 2, displayWidth / 2, 0, Math.PI * 2);
+      ctx.clip();
+    }
+
     // Draw all elements and update text dimensions
     elements.forEach((el) => {
       drawElement(ctx, el);
@@ -140,7 +148,12 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
         }
       }
     });
-  }, [elements, displayWidth, displayHeight, backgroundColor]);
+
+    // Restore context for round display
+    if (isRoundDisplay) {
+      ctx.restore();
+    }
+  }, [elements, displayWidth, displayHeight, backgroundColor, isRoundDisplay]);
 
   function drawElement(ctx: CanvasRenderingContext2D, el: DesignElement) {
     switch (el.type) {
@@ -321,7 +334,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
                   if (preset.name === "Custom") {
                     setShowCustomDialog(true);
                   } else {
-                    useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+                    useDesignStore.getState().setDisplaySize(preset.width, preset.height, preset.isRound);
                   }
                 }
               }}
