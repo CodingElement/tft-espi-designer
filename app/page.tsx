@@ -15,8 +15,10 @@ export default function Home() {
   const [autoSync, setAutoSync] = useState(true);
   const [codeModified, setCodeModified] = useState(false);
   const [clipboard, setClipboard] = useState<DesignElement | null>(null);
-  const [editorHeight, setEditorHeight] = useState(200);
-  const [isResizing, setIsResizing] = useState(false);
+  const [editorWidth, setEditorWidth] = useState(350);
+  const [isResizingWidth, setIsResizingWidth] = useState(false);
+  const [propertyPanelHeight, setPropertyPanelHeight] = useState(180);
+  const [isResizingHeight, setIsResizingHeight] = useState(false);
   const { elements, selectedElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
 
   // Automatisch Code generieren wenn Elemente sich ändern
@@ -109,23 +111,22 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [clipboard]);
 
-  // Handle editor height resize
+  // Handle editor width resize (vertical divider)
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
+      if (!isResizingWidth) return;
       const container = document.querySelector(".preview-editor-container") as HTMLElement;
       if (!container) return;
       const containerRect = container.getBoundingClientRect();
-      // Invert: dragging up (smaller Y) should increase editor height
-      const newEditorHeight = Math.max(100, Math.min(containerRect.bottom - e.clientY, containerRect.height - 100));
-      setEditorHeight(newEditorHeight);
+      const newEditorWidth = Math.max(200, Math.min(containerRect.right - e.clientX, containerRect.width - 200));
+      setEditorWidth(newEditorWidth);
     };
 
     const onMouseUp = () => {
-      setIsResizing(false);
+      setIsResizingWidth(false);
     };
 
-    if (isResizing) {
+    if (isResizingWidth) {
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
       return () => {
@@ -133,7 +134,32 @@ export default function Home() {
         window.removeEventListener("mouseup", onMouseUp);
       };
     }
-  }, [isResizing]);
+  }, [isResizingWidth]);
+
+  // Handle property panel height resize (horizontal divider)
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizingHeight) return;
+      const container = document.querySelector(".main-layout-container") as HTMLElement;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const newPanelHeight = Math.max(80, Math.min(containerRect.bottom - e.clientY, containerRect.height - 200));
+      setPropertyPanelHeight(newPanelHeight);
+    };
+
+    const onMouseUp = () => {
+      setIsResizingHeight(false);
+    };
+
+    if (isResizingHeight) {
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      };
+    }
+  }, [isResizingHeight]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -174,25 +200,25 @@ export default function Home() {
         <BackgroundColorPanel />
 
         {/* Main Layout */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Preview & Code Area */}
-          <div className="flex-1 flex flex-col overflow-hidden preview-editor-container">
+        <div className="flex-1 flex flex-col overflow-hidden main-layout-container">
+          {/* Content Area: Preview & Code Editor (horizontal) */}
+          <div className="flex-1 flex overflow-hidden preview-editor-container">
             {/* Preview */}
-            <div className="flex-1 flex flex-col border-r border-gray-700 overflow-hidden">
+            <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ flex: "1 1 auto" }}>
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
                 <h2 className="text-sm font-semibold">Vorschau</h2>
               </div>
               <Preview />
             </div>
 
-            {/* Resizable Divider */}
+            {/* Vertical Divider (between Preview & Code Editor) */}
             <div
-              className="h-1 bg-gray-600 hover:bg-blue-500 cursor-row-resize transition-colors"
-              onMouseDown={() => setIsResizing(true)}
+              className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
+              onMouseDown={() => setIsResizingWidth(true)}
             />
 
             {/* Code Editor */}
-            <div className="flex flex-col border-t border-gray-700 overflow-hidden" style={{ height: `${editorHeight}px` }}>
+            <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ width: `${editorWidth}px` }}>
               <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
                 <h2 className="text-sm font-semibold">Code Editor</h2>
               </div>
@@ -200,11 +226,19 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Property Panel */}
+          {/* Horizontal Divider (between Content & Property Panel) */}
           {selectedElement && (
-            <div className="w-64 border-l border-gray-700 overflow-auto">
-              <PropertyPanel />
-            </div>
+            <>
+              <div
+                className="h-1 bg-gray-600 hover:bg-blue-500 cursor-row-resize transition-colors"
+                onMouseDown={() => setIsResizingHeight(true)}
+              />
+
+              {/* Property Panel (bottom) */}
+              <div className="border-t border-gray-700 overflow-auto bg-gray-800" style={{ height: `${propertyPanelHeight}px` }}>
+                <PropertyPanel />
+              </div>
+            </>
           )}
         </div>
       </div>
