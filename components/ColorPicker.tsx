@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface ColorPickerProps {
   value: string;
@@ -12,6 +12,7 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [rgbInput, setRgbInput] = useState("");
   const [hexInput, setHexInput] = useState(value);
+  const colorInputRef = useRef<HTMLInputElement | null>(null);
 
   // Keep local input in sync if parent value changes externally
   // (e.g., via presets, parsing code, or color input control).
@@ -83,6 +84,7 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
       {/* Color Picker Row */}
       <div className="flex gap-2 items-center">
         <input
+          ref={colorInputRef}
           type="color"
           value={value}
           onChange={handleColorInputChange}
@@ -97,7 +99,8 @@ export default function ColorPicker({ value, onChange, label }: ColorPickerProps
             if (e.key === "Enter") handleHexBlur();
           }}
           placeholder="#FFFFFF oder #FFF"
-          className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono"
+          className="flex-1 bg-gray-900 border border-gray-700 rounded px-2 py-2 text-sm text-white font-mono cursor-pointer"
+          onClick={() => colorInputRef.current?.click()}
         />
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}

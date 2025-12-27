@@ -151,44 +151,78 @@ export function tftColorTokenToHex(token: string): string {
   return "#FFFFFF";
 }
 function generateElementCode(el: DesignElement): string {
-  const color = colorToHex(el.color);
+  const fillColor = colorToHex(el.color);
+  const strokeColor = colorToHex(el.borderColor || el.color);
   let code = "  ";
 
   switch (el.type) {
     case "rect":
+      // Always fill first
+      code += `tft.fillRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${fillColor});`;
+      // Then draw border if requested
       if (el.borderWidth && el.borderWidth > 0) {
-        code += `tft.drawRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${color});`;
-      } else {
-        code += `tft.fillRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${color});`;
+        if (el.borderWidth === 1) {
+          code += `\n  tft.drawRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${strokeColor});`;
+        } else {
+          code += `\n  // Simulated border thickness: ${el.borderWidth}`;
+          code += `\n  for (int i = 0; i < ${el.borderWidth}; i++) {`;
+          code += `\n    tft.drawRect(${el.x} + i, ${el.y} + i, ${el.width} - 2*i, ${el.height} - 2*i, ${strokeColor});`;
+          code += `\n  }`;
+        }
       }
       break;
 
     case "triangle":
-      code += `// Triangle at (${el.x}, ${el.y}) - size: ${el.width}x${el.height}
-  tft.fillTriangle(${el.x + el.width / 2}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${el.x}, ${el.y + el.height}, ${color});`;
+      code += `// Triangle at (${el.x}, ${el.y}) - size: ${el.width}x${el.height}`;
+      code += `\n  tft.fillTriangle(${el.x + el.width / 2}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${el.x}, ${el.y + el.height}, ${fillColor});`;
+      if (el.borderWidth && el.borderWidth > 0) {
+        code += `\n  // TFT_eSPI does not support stroke width for triangles; drawing outline once`;
+        code += `\n  tft.drawTriangle(${el.x + el.width / 2}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${el.x}, ${el.y + el.height}, ${strokeColor});`;
+      }
       break;
 
     case "circle":
+      const cx = el.x + (el.radius || 10);
+      const cy = el.y + (el.radius || 10);
+      const r = el.radius || 10;
+      code += `tft.fillCircle(${cx}, ${cy}, ${r}, ${fillColor});`;
       if (el.borderWidth && el.borderWidth > 0) {
-        code += `tft.drawCircle(${el.x + (el.radius || 10)}, ${el.y + (el.radius || 10)}, ${el.radius || 10}, ${color});`;
-      } else {
-        code += `tft.fillCircle(${el.x + (el.radius || 10)}, ${el.y + (el.radius || 10)}, ${el.radius || 10}, ${color});`;
+        if (el.borderWidth === 1) {
+          code += `\n  tft.drawCircle(${cx}, ${cy}, ${r}, ${strokeColor});`;
+        } else {
+          code += `\n  // Simulated border thickness: ${el.borderWidth}`;
+          code += `\n  for (int i = 0; i < ${el.borderWidth}; i++) {`;
+          code += `\n    tft.drawCircle(${cx}, ${cy}, ${r} - i, ${strokeColor});`;
+          code += `\n  }`;
+        }
       }
       break;
 
     case "text":
-      code += `tft.setTextColor(${color});
+      code += `tft.setTextColor(${fillColor});
   tft.drawString("${el.text || "Text"}", ${el.x}, ${el.y}, ${el.fontSize || 2});`;
       break;
 
     case "line":
-      code += `tft.drawLine(${el.x}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${color});`;
+      // TFT_eSPI line thickness is fixed; use color as stroke
+      code += `tft.drawLine(${el.x}, ${el.y}, ${el.x + el.width}, ${el.y + el.height}, ${strokeColor});`;
       break;
 
     case "button":
-      code += `tft.fillRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${color});
-  tft.setTextColor(TFT_WHITE);
-  tft.drawString("${el.text || "Button"}", ${el.x + 10}, ${el.y + (el.height / 2 - 8)}, 2);`;
+      code += `tft.fillRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${fillColor});`;
+      // Draw border if present (simulate thickness by multiple rects)
+      if (el.borderWidth && el.borderWidth > 0) {
+        if (el.borderWidth === 1) {
+          code += `\n  tft.drawRect(${el.x}, ${el.y}, ${el.width}, ${el.height}, ${strokeColor});`;
+        } else {
+          code += `\n  // Simulated border thickness: ${el.borderWidth}`;
+          code += `\n  for (int i = 0; i < ${el.borderWidth}; i++) {`;
+          code += `\n    tft.drawRect(${el.x} + i, ${el.y} + i, ${el.width} - 2*i, ${el.height} - 2*i, ${strokeColor});`;
+          code += `\n  }`;
+        }
+      }
+        code += `\n  tft.setTextColor(TFT_WHITE);`;
+        code += `\n  tft.drawString("${el.text || "Button"}", ${el.x + 10}, ${el.y + (el.height / 2 - 8)}, 2);`;
       break;
 
     case "image":
