@@ -25,6 +25,7 @@ interface DesignStore {
   selectedElement: DesignElement | null;
   displayWidth: number;
   displayHeight: number;
+  previewScale: number;
   backgroundColor: string;
   setElements: (elements: DesignElement[]) => void;
   addElement: (element: DesignElement) => void;
@@ -32,6 +33,7 @@ interface DesignStore {
   deleteElement: (id: string) => void;
   selectElement: (id: string | null) => void;
   setDisplaySize: (width: number, height: number) => void;
+  setPreviewScale: (scale: number) => void;
   setBackgroundColor: (color: string) => void;
   clearAll: () => void;
 }
@@ -41,6 +43,7 @@ export const useDesignStore = create<DesignStore>((set) => ({
   selectedElement: null,
   displayWidth: 320,
   displayHeight: 240,
+  previewScale: 1,
   backgroundColor: "#000000",
 
   setElements: (elements) =>
@@ -84,6 +87,11 @@ export const useDesignStore = create<DesignStore>((set) => ({
     set({
       displayWidth: width,
       displayHeight: height,
+    }),
+
+  setPreviewScale: (scale) =>
+    set({
+      previewScale: Math.max(0.5, Math.min(scale, 8)),
     }),
 
   setBackgroundColor: (color) =>

@@ -5,7 +5,7 @@ import { useDesignStore, type DesignElement } from "@/lib/store";
 
 export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor } = useDesignStore();
+  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale } = useDesignStore();
   
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -16,6 +16,10 @@ export default function Preview() {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // Ensure crisp pixel rendering
+    // @ts-ignore
+    ctx.imageSmoothingEnabled = false;
 
     // Clear canvas mit Hintergrundfarbe
     ctx.fillStyle = backgroundColor;
@@ -117,9 +121,11 @@ export default function Preview() {
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
     };
   };
 
@@ -168,7 +174,7 @@ export default function Preview() {
 
   return (
     <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-950 p-8">
-      <div className="relative bg-black border-2 border-gray-700 shadow-2xl" style={{ aspectRatio: `${displayWidth}/${displayHeight}` }}>
+      <div className="relative bg-black border-2 border-gray-700 shadow-2xl">
         <canvas
           ref={canvasRef}
           width={displayWidth}
@@ -177,8 +183,12 @@ export default function Preview() {
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
           onMouseLeave={handleCanvasMouseUp}
-          className="w-full h-full cursor-move"
-          style={{ imageRendering: "crisp-edges" }}
+          className="cursor-move"
+          style={{
+            width: `${displayWidth * previewScale}px`,
+            height: `${displayHeight * previewScale}px`,
+            imageRendering: "pixelated",
+          }}
         />
       </div>
     </div>

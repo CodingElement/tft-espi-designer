@@ -13,7 +13,7 @@ const PRESET_SIZES = [
 ];
 
 export default function DisplaySettings() {
-  const { displayWidth, displayHeight, setDisplaySize } = useDesignStore();
+  const { displayWidth, displayHeight, previewScale, setDisplaySize, setPreviewScale } = useDesignStore();
   const [isCustom, setIsCustom] = useState(false);
 
   const currentPreset = PRESET_SIZES.find(
@@ -72,6 +72,18 @@ export default function DisplaySettings() {
           {displayWidth}×{displayHeight}
         </span>
       )}
+      <div className="flex items-center gap-2 ml-4">
+        <label className="text-sm font-medium">Zoom:</label>
+        <select
+          value={previewScale}
+          onChange={(e) => setPreviewScale(parseFloat(e.target.value))}
+          className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm text-white cursor-pointer hover:bg-gray-600"
+        >
+          {[0.5, 1, 1.5, 2, 3, 4].map((z) => (
+            <option key={z} value={z}>{z}×</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }
