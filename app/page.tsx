@@ -99,12 +99,12 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
-          <div>
+        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-center">
+          <div className="text-center">
             <h1 className="text-2xl font-bold">TFT-eSPI Designer</h1>
             <p className="text-sm text-gray-400">Online Editor mit Live-Vorschau</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="absolute right-6 flex items-center gap-4">
             {codeModified && (
               <button
                 onClick={handleRefreshCode}
