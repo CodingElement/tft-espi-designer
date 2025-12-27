@@ -32,6 +32,9 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [cursorStyle, setCursorStyle] = useState<string>("default");
+  const [showCustomDialog, setShowCustomDialog] = useState(false);
+  const [customWidth, setCustomWidth] = useState(displayWidth);
+  const [customHeight, setCustomHeight] = useState(displayHeight);
 
   const handleAddElement = (type: ElementType) => {
     const element = {
@@ -308,8 +311,12 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
             value={currentPreset?.name || "Custom"}
             onChange={(e) => {
               const preset = PRESET_SIZES.find((p) => p.name === e.target.value);
-              if (preset && preset.name !== "Custom") {
-                useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+              if (preset) {
+                if (preset.name === "Custom") {
+                  setShowCustomDialog(true);
+                } else {
+                  useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+                }
               }
             }}
             className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white cursor-pointer hover:bg-gray-600"
@@ -325,7 +332,7 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">Zoom:</span>
             <select
-              value={`${previewScale}x`}
+              value={previewScale.toString()}
               onChange={(e) => {
                 const scale = parseFloat(e.target.value);
                 useDesignStore.getState().setPreviewScale(scale);
@@ -430,6 +437,56 @@ export default function Preview({ onOpenHelp }: PreviewProps) {
           />
         </div>
       </div>
+
+      {/* Custom Display Size Dialog */}
+      {showCustomDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Custom Display-Größe</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Breite (px)</label>
+                <input
+                  type="number"
+                  value={customWidth}
+                  onChange={(e) => setCustomWidth(parseInt(e.target.value) || 0)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
+                  min="1"
+                  max="2000"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Höhe (px)</label>
+                <input
+                  type="number"
+                  value={customHeight}
+                  onChange={(e) => setCustomHeight(parseInt(e.target.value) || 0)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
+                  min="1"
+                  max="2000"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCustomDialog(false)}
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => {
+                  useDesignStore.getState().setDisplaySize(customWidth, customHeight);
+                  setShowCustomDialog(false);
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white transition-colors"
+              >
+                Übernehmen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
