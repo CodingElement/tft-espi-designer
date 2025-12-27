@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDesignStore, type DesignElement, type ElementType } from "@/lib/store";
-import { Square, Circle, Type, Minus, Trash2, Trash, Triangle, Undo2, Redo2 } from "lucide-react";
+import { Square, Circle, Type, Minus, Trash2, Trash, Triangle, Undo2, Redo2, HelpCircle } from "lucide-react";
 
 const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }[] = [
   { type: "rect", icon: <Square size={18} />, label: "Rechteck" },
@@ -12,7 +12,20 @@ const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }
   { type: "line", icon: <Minus size={18} />, label: "Linie" },
 ];
 
-export default function Preview() {
+const PRESET_SIZES = [
+  { name: "2.4\" ILI9341", width: 320, height: 240 },
+  { name: "3.5\" ILI9486", width: 480, height: 320 },
+  { name: "4.0\" ILI9488", width: 480, height: 320 },
+  { name: "5.0\" ILI9488", width: 800, height: 480 },
+  { name: "7.0\" Nextion", width: 800, height: 480 },
+  { name: "Custom", width: 0, height: 0 },
+];
+
+interface PreviewProps {
+  onOpenHelp: () => void;
+}
+
+export default function Preview({ onOpenHelp }: PreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, addElement, deleteElement, clearAll, selectedElement, undo, redo, canUndo, canRedo } = useDesignStore();
   const [nextId, setNextId] = useState(0);
@@ -281,61 +294,119 @@ export default function Preview() {
     }
   };
 
+  const currentPreset = PRESET_SIZES.find(
+    (p) => p.width === displayWidth && p.height === displayHeight
+  );
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Toolbar (Element Tools) */}
-      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-center gap-2">
-        <div className="flex gap-1">
-          {ELEMENT_TYPES.map(({ type, icon, label }) => (
-            <button
-              key={type}
-              onClick={() => handleAddElement(type)}
-              title={label}
-              className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+      {/* Toolbar */}
+      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between gap-4">
+        {/* Left: Display & Zoom */}
+        <div className="flex items-center gap-3">
+          <select
+            value={currentPreset?.name || "Custom"}
+            onChange={(e) => {
+              const preset = PRESET_SIZES.find((p) => p.name === e.target.value);
+              if (preset && preset.name !== "Custom") {
+                useDesignStore.getState().setDisplaySize(preset.width, preset.height);
+              }
+            }}
+            className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white cursor-pointer hover:bg-gray-600"
+            title="Display-Größe"
+          >
+            {PRESET_SIZES.map((preset) => (
+              <option key={preset.name} value={preset.name}>
+                {preset.name}
+              </option>
+            ))}
+          </select>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">Zoom:</span>
+            <select
+              value={`${previewScale}x`}
+              onChange={(e) => {
+                const scale = parseFloat(e.target.value);
+                useDesignStore.getState().setPreviewScale(scale);
+              }}
+              className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white cursor-pointer hover:bg-gray-600"
             >
-              {icon}
-            </button>
-          ))}
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1">1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+              <option value="4">4x</option>
+            </select>
+          </div>
         </div>
         
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {/* Undo/Redo */}
-        <button
-          onClick={() => undo()}
-          disabled={!canUndo()}
-          title="Rückgängig (Ctrl+Z)"
-          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Undo2 size={18} />
-        </button>
-        <button
-          onClick={() => redo()}
-          disabled={!canRedo()}
-          title="Wiederherstellen (Ctrl+Y)"
-          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Redo2 size={18} />
-        </button>
-        
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {selectedElement && (
+        {/* Center: Element Tools */}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            {ELEMENT_TYPES.map(({ type, icon, label }) => (
+              <button
+                key={type}
+                onClick={() => handleAddElement(type)}
+                title={label}
+                className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
+          
+          <div className="w-px h-6 bg-gray-700" />
+          
+          {/* Undo/Redo */}
           <button
-            onClick={() => deleteElement(selectedElement.id)}
-            title="Löschen"
+            onClick={() => undo()}
+            disabled={!canUndo()}
+            title="Rückgängig (Ctrl+Z)"
+            className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Undo2 size={18} />
+          </button>
+          <button
+            onClick={() => redo()}
+            disabled={!canRedo()}
+            title="Wiederherstellen (Ctrl+Y)"
+            className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Redo2 size={18} />
+          </button>
+          
+          <div className="w-px h-6 bg-gray-700" />
+          
+          {selectedElement && (
+            <button
+              onClick={() => deleteElement(selectedElement.id)}
+              title="Löschen"
+              className="p-2 rounded hover:bg-red-900 transition-colors text-red-400 hover:text-red-300"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+          
+          <button
+            onClick={handleClearAll}
+            title="Alles löschen"
             className="p-2 rounded hover:bg-red-900 transition-colors text-red-400 hover:text-red-300"
           >
-            <Trash2 size={18} />
+            <Trash size={18} />
           </button>
-        )}
+        </div>
         
+        {/* Right: Help */}
         <button
-          onClick={handleClearAll}
-          title="Alles löschen"
-          className="p-2 rounded hover:bg-red-900 transition-colors text-red-400 hover:text-red-300"
+          onClick={onOpenHelp}
+          className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-300 hover:text-white"
+          aria-label="Hilfe"
+          title="Hilfe & Anleitung"
         >
-          <Trash size={18} />
+          <HelpCircle size={20} />
         </button>
       </div>
 

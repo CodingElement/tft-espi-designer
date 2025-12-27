@@ -4,14 +4,12 @@ import { useState, useEffect } from "react";
 import Editor from "@/components/Editor";
 import Preview from "@/components/Preview";
 import PropertyPanel from "@/components/PropertyPanel";
-import DisplaySettings from "@/components/DisplaySettings";
 import BackgroundColorPanel from "@/components/BackgroundColorPanel";
 import HelpModal from "@/components/HelpModal";
 import { useDesignStore, type DesignElement } from "@/lib/store";
 import { generateArduinoCode, parseArduinoCode } from "@/lib/codeGenerator";
 import { useResizable } from "@/lib/hooks/useResizable";
 import { useKeyboardShortcuts } from "@/lib/hooks/useKeyboardShortcuts";
-import { HelpCircle } from "lucide-react";
 
 // Layout-Konstanten
 const PROPERTY_PANEL_DEFAULT_WIDTH = 250;
@@ -107,7 +105,6 @@ export default function Home() {
             <p className="text-sm text-gray-400">Online Editor mit Live-Vorschau</p>
           </div>
           <div className="flex items-center gap-4">
-            <DisplaySettings />
             {codeModified && (
               <button
                 onClick={handleRefreshCode}
@@ -116,23 +113,6 @@ export default function Home() {
                 ↻ Code aktualisieren
               </button>
             )}
-            <label className="flex items-center gap-2 text-sm text-gray-300 hover:text-white cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoSync}
-                onChange={(e) => setAutoSync(e.target.checked)}
-                className="w-4 h-4"
-              />
-              Auto-Sync
-            </label>
-            <button
-              onClick={() => setHelpOpen(true)}
-              className="p-2 hover:bg-gray-700 rounded transition-colors"
-              aria-label="Hilfe"
-              title="Hilfe & Anleitung"
-            >
-              <HelpCircle size={20} />
-            </button>
           </div>
         </header>
 
@@ -156,10 +136,7 @@ export default function Home() {
           <div className="flex-1 flex overflow-hidden preview-editor-container">
             {/* Preview */}
             <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ flex: "1 1 auto" }}>
-              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700 text-center">
-                <h2 className="text-sm font-semibold">Vorschau</h2>
-              </div>
-              <Preview />
+              <Preview onOpenHelp={() => setHelpOpen(true)} />
             </div>
 
             {/* Vertical Divider (between Preview & Code Editor) */}
@@ -170,8 +147,19 @@ export default function Home() {
 
             {/* Code Editor */}
             <div className="flex flex-col border-r border-gray-700 overflow-hidden" style={{ width: `${editorPanel.width}px` }}>
-              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-                <h2 className="text-sm font-semibold">Code Editor</h2>
+              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-xs text-gray-300 hover:text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoSync}
+                      onChange={(e) => setAutoSync(e.target.checked)}
+                      className="w-3 h-3"
+                    />
+                    Auto-Sync
+                  </label>
+                  <h2 className="text-sm font-semibold">Code Editor</h2>
+                </div>
               </div>
               <Editor code={code} onChange={handleCodeChange} />
             </div>
