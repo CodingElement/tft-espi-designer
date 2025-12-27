@@ -37,7 +37,15 @@ export function useResizable({
       }
       
       // Apply constraints
-      const maxWidth = maxWidthConstraint ?? containerRect.width - minWidth;
+      let maxWidth: number;
+      if (maxWidthConstraint) {
+        // If constraint is provided, calculate max based on container and constraint
+        maxWidth = containerRect.width - maxWidthConstraint;
+      } else {
+        // Default: leave minWidth for the other side
+        maxWidth = containerRect.width - minWidth;
+      }
+      
       newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
       
       setWidth(newWidth);

@@ -37,7 +37,7 @@ export default function Home() {
     defaultWidth: EDITOR_DEFAULT_WIDTH,
     minWidth: EDITOR_MIN_WIDTH,
     containerSelector: ".preview-editor-container",
-    resizeFromRight: false,
+    resizeFromRight: true,
     maxWidthConstraint: LAYOUT_MIN_REMAINING_WIDTH,
   });
   
