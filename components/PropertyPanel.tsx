@@ -6,7 +6,18 @@ import ColorPicker from "./ColorPicker";
 export default function PropertyPanel() {
   const { selectedElement, updateElement, deleteElement } = useDesignStore();
 
-  if (!selectedElement) return null;
+  if (!selectedElement) {
+    return (
+      <div className="flex flex-col h-full overflow-y-auto bg-gray-800">
+        <div className="p-4 border-b border-gray-700">
+          <h3 className="font-semibold text-sm mb-4">Eigenschaften</h3>
+        </div>
+        <div className="flex items-center justify-center h-full p-6 text-center text-gray-400 text-sm">
+          Erstelle ein Objekt oder wähle eines aus
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-gray-800">

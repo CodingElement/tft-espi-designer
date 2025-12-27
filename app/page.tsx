@@ -190,20 +190,16 @@ export default function Home() {
 
         {/* Main Layout */}
         <div className="flex-1 flex overflow-hidden main-layout-container">
-          {/* Property Panel (left, optional) */}
-          {selectedElement && (
-            <>
-              <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanelWidth}px` }}>
-                <PropertyPanel />
-              </div>
+          {/* Property Panel (left, always visible) */}
+          <div className="border-r border-gray-700 overflow-auto bg-gray-800" style={{ width: `${propertyPanelWidth}px` }}>
+            <PropertyPanel />
+          </div>
 
-              {/* Vertical Divider (left of preview) */}
-              <div
-                className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
-                onMouseDown={() => setIsResizingPropertyWidth(true)}
-              />
-            </>
-          )}
+          {/* Vertical Divider (left of preview) */}
+          <div
+            className="w-1 bg-gray-600 hover:bg-blue-500 cursor-col-resize transition-colors"
+            onMouseDown={() => setIsResizingPropertyWidth(true)}
+          />
 
           {/* Preview & Code Editor (horizontal) */}
           <div className="flex-1 flex overflow-hidden preview-editor-container">
