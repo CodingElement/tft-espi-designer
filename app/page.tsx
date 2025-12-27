@@ -30,7 +30,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header */}
+        {/* Header */}
         <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">TFT-eSPI Designer</h1>
@@ -52,6 +52,25 @@ export default function Home() {
 
         {/* Background Color Panel */}
         <BackgroundColorPanel />
+
+        {/* Main Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Preview & Code Area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Preview */}
+            <div className="flex-1 flex flex-col border-r border-gray-700 overflow-hidden">
+              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
+                <h2 className="text-sm font-semibold">Vorschau</h2>
+              </div>
+              <Preview />
+            </div>
+
+            {/* Code Editor */}
+            <div className="flex-1 flex flex-col border-t border-gray-700 overflow-hidden">
+              <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
+                <h2 className="text-sm font-semibold">Code Editor</h2>
+              </div>
+              <Editor code={code} onChange={setCode} />
             </div>
           </div>
 
