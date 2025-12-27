@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDesignStore, type DesignElement, type ElementType } from "@/lib/store";
-import { Square, Circle, Type, Minus, Trash2, RotateCcw, Triangle } from "lucide-react";
+import { Square, Circle, Type, Minus, Trash2, Trash, Triangle, Undo2, Redo2 } from "lucide-react";
 
 const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }[] = [
   { type: "rect", icon: <Square size={18} />, label: "Rechteck" },
@@ -14,7 +14,7 @@ const ELEMENT_TYPES: { type: ElementType; icon: React.ReactNode; label: string }
 
 export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, addElement, deleteElement, clearAll, selectedElement } = useDesignStore();
+  const { elements, selectElement, updateElement, displayWidth, displayHeight, backgroundColor, previewScale, addElement, deleteElement, clearAll, selectedElement, undo, redo, canUndo, canRedo } = useDesignStore();
   const [nextId, setNextId] = useState(0);
   const [draggingElement, setDraggingElement] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -275,6 +275,12 @@ export default function Preview() {
     setDraggingElement(null);
   };
 
+  const handleClearAll = () => {
+    if (window.confirm("Möchtest du wirklich alle Elemente löschen?")) {
+      clearAll();
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Toolbar (Element Tools) */}
@@ -294,6 +300,26 @@ export default function Preview() {
         
         <div className="w-px h-6 bg-gray-700" />
         
+        {/* Undo/Redo */}
+        <button
+          onClick={() => undo()}
+          disabled={!canUndo()}
+          title="Rückgängig (Ctrl+Z)"
+          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <Undo2 size={18} />
+        </button>
+        <button
+          onClick={() => redo()}
+          disabled={!canRedo()}
+          title="Wiederherstellen (Ctrl+Y)"
+          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <Redo2 size={18} />
+        </button>
+        
+        <div className="w-px h-6 bg-gray-700" />
+        
         {selectedElement && (
           <button
             onClick={() => deleteElement(selectedElement.id)}
@@ -305,11 +331,11 @@ export default function Preview() {
         )}
         
         <button
-          onClick={() => clearAll()}
+          onClick={handleClearAll}
           title="Alles löschen"
-          className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-200"
+          className="p-2 rounded hover:bg-red-900 transition-colors text-red-400 hover:text-red-300"
         >
-          <RotateCcw size={18} />
+          <Trash size={18} />
         </button>
       </div>
 

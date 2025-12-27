@@ -35,8 +35,22 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // Copy / Cut / Paste with Ctrl
-      if (e.ctrlKey) {
+      // Ctrl/Cmd shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        // Undo (Ctrl+Z)
+        if (e.key.toLowerCase() === "z" && !e.shiftKey) {
+          e.preventDefault();
+          store.undo();
+          return;
+        }
+        
+        // Redo (Ctrl+Y or Ctrl+Shift+Z)
+        if (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey)) {
+          e.preventDefault();
+          store.redo();
+          return;
+        }
+        
         // Copy (Ctrl+C)
         if (e.key.toLowerCase() === "c" && selectedElement) {
           e.preventDefault();
