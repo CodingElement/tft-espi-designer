@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useDesignStore } from "@/lib/store";
 
 const PRESET_SIZES = [
@@ -13,7 +14,7 @@ const PRESET_SIZES = [
 
 export default function DisplaySettings() {
   const { displayWidth, displayHeight, setDisplaySize } = useDesignStore();
-  const [isCustom, setIsCustom] = false;
+  const [isCustom, setIsCustom] = useState(false);
 
   const currentPreset = PRESET_SIZES.find(
     (p) => p.width === displayWidth && p.height === displayHeight
