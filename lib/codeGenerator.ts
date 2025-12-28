@@ -51,13 +51,18 @@ export function generateArduinoCode(
   const userLoop = extractSection(source, USER_LOOP_START, USER_LOOP_END, defaultUserLoop);
 
   // Auto-generated drawing block (will be replaced on every regeneration)
+  const elementCode = elements
+    .map((el) => generateElementCode(el).trimEnd())
+    .filter((s) => s.length > 0)
+    .join("\n");
+
   const autoDrawBlock = [
     `  ${AUTO_DRAW_START}`,
     `  tft.fillScreen(${colorToHex(backgroundColor)});`,
-    elements.map((el) => generateElementCode(el)).join(""),
+    elementCode,
     `  ${AUTO_DRAW_END}`,
   ]
-    .filter(Boolean)
+    .filter((part) => part !== "")
     .join("\n");
 
   const output = `#include <TFT_eSPI.h>
