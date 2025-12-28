@@ -26,6 +26,11 @@ function indentBlock(block: string, indent = "  "): string {
     .join("\n");
 }
 
+function squashBlankLines(source: string): string {
+  // Collapse runs of 3+ newlines down to 2 for cleaner output
+  return source.replace(/\n{3,}/g, "\n\n");
+}
+
 export function generateArduinoCode(
   elements: DesignElement[],
   displayWidth: number = 320,
@@ -55,7 +60,7 @@ export function generateArduinoCode(
     .filter(Boolean)
     .join("\n");
 
-  return `#include <TFT_eSPI.h>
+  const output = `#include <TFT_eSPI.h>
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -73,6 +78,8 @@ void loop() {
 ${indentBlock(`${USER_LOOP_START}\n${userLoop}\n${USER_LOOP_END}`)}
 }
 `;
+
+  return squashBlankLines(output);
 }
 
 // Parse TFT_eSPI Arduino code into design elements and background color
