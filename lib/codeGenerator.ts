@@ -1,41 +1,78 @@
 import { DesignElement } from "./store";
 
-export function generateArduinoCode(elements: DesignElement[], displayWidth: number = 320, displayHeight: number = 240, backgroundColor: string = "#000000", existingCode?: string): string {
-  // Extract custom code from existing code (between markers)
-  let customCode = "";
-  if (existingCode) {
-    const customMatch = existingCode.match(/\/\/ CUSTOM CODE START([\s\S]*?)\/\/ CUSTOM CODE END/);
-    if (customMatch) {
-      customCode = customMatch[1];
-    }
-  }
+// Markers to preserve user sections across regenerations
+const CUSTOM_CODE_START = "// CUSTOM CODE START";
+const CUSTOM_CODE_END = "// CUSTOM CODE END";
+const USER_SETUP_START = "// USER SETUP START";
+const USER_SETUP_END = "// USER SETUP END";
+const USER_LOOP_START = "// USER LOOP START";
+const USER_LOOP_END = "// USER LOOP END";
+const AUTO_DRAW_START = "// AUTO-GENERATED DRAWINGS START";
+const AUTO_DRAW_END = "// AUTO-GENERATED DRAWINGS END";
 
-  let code = `#include <TFT_eSPI.h>
+function extractSection(source: string, start: string, end: string, fallback: string): string {
+  const startIdx = source.indexOf(start);
+  const endIdx = source.indexOf(end);
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    return source.slice(startIdx + start.length, endIdx).trim();
+  }
+  return fallback.trim();
+}
+
+function indentBlock(block: string, indent = "  "): string {
+  return block
+    .split("\n")
+    .map((line) => (line.trim().length ? `${indent}${line}` : ""))
+    .join("\n");
+}
+
+export function generateArduinoCode(
+  elements: DesignElement[],
+  displayWidth: number = 320,
+  displayHeight: number = 240,
+  backgroundColor: string = "#000000",
+  existingCode?: string
+): string {
+  const source = existingCode || "";
+
+  // Preserve free-form custom code block (outside setup/loop)
+  const customCode = extractSection(source, CUSTOM_CODE_START, CUSTOM_CODE_END, "\n");
+
+  // Preserve user-authored setup/loop sections; fall back to sensible defaults
+  const defaultUserSetup = `tft.init();\n  tft.setRotation(1);`;
+  const userSetup = extractSection(source, USER_SETUP_START, USER_SETUP_END, defaultUserSetup);
+
+  const defaultUserLoop = "delay(100);";
+  const userLoop = extractSection(source, USER_LOOP_START, USER_LOOP_END, defaultUserLoop);
+
+  // Auto-generated drawing block (will be replaced on every regeneration)
+  const autoDrawBlock = [
+    `  ${AUTO_DRAW_START}`,
+    `  tft.fillScreen(${colorToHex(backgroundColor)});`,
+    elements.map((el) => generateElementCode(el)).join(""),
+    `  ${AUTO_DRAW_END}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `#include <TFT_eSPI.h>
 
 TFT_eSPI tft = TFT_eSPI();
 
-// CUSTOM CODE START${customCode}// CUSTOM CODE END
+${CUSTOM_CODE_START}
+${customCode}
+${CUSTOM_CODE_END}
 
 void setup() {
-  tft.init();
-  tft.setRotation(1);
-  tft.fillScreen(${colorToHex(backgroundColor)});
-  
-`;
+${indentBlock(`${USER_SETUP_START}\n${userSetup}\n${USER_SETUP_END}`)}
 
-  // Generate drawing code for each element
-  elements.forEach((el) => {
-    code += generateElementCode(el);
-  });
-
-  code += `}
+${autoDrawBlock}
+}
 
 void loop() {
-  delay(100);
+${indentBlock(`${USER_LOOP_START}\n${userLoop}\n${USER_LOOP_END}`)}
 }
 `;
-
-  return code;
 }
 
 // Parse TFT_eSPI Arduino code into design elements and background color
